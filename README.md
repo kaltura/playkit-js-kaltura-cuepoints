@@ -1,1 +1,1 @@
-# playkit-js-cuepoint-service
+# playkit-js-cuepoints
