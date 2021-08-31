@@ -14,6 +14,7 @@ declare namespace KalturaPlayerTypes {
     seekToLiveEdge(): void;
     destroy(): void;
     reset(): void;
+    registerService(name: string, service: Object): void;
     getView: () => Node;
     getMediaInfo: () => any;
     paused: boolean;
