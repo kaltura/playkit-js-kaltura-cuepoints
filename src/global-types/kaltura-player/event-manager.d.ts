@@ -7,5 +7,6 @@ declare namespace KalturaPlayerTypes {
     listenOnce: (target: Target, event: typeof EventType, cb: CallbackFunction) => void;
     unlisten: (target: Target, event: typeof EventType) => void;
     destroy: () => void;
+    removeAll: () => void;
   }
 }

@@ -11,16 +11,20 @@ export class Cuepoints extends KalturaPlayer.core.BasePlugin {
 
   constructor(name: string, player: Player) {
     super(name, player);
-    this._cuePointService = new CuepointService(player);
+    this.eventManager.listen(this.player, this.player.Event.CHANGE_SOURCE_ENDED, () => {
+      this._cuePointService.init();
+    });
+    this._cuePointService = new CuepointService(player, this.logger);
     player.registerService('cuepoints', this._cuePointService);
   }
 
-  loadMedia(): void {
-    if (this.player.isLive()) {
-      this._cuePointService.registerToPushServer();
-    } else {
-      this._cuePointService.fetchVodData();
-    }
+  reset() {
+    this._cuePointService.reset();
+  }
+
+  destroy() {
+    this.eventManager.destroy();
+    this._cuePointService.reset();
   }
 
   /**
