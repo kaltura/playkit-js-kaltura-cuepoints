@@ -3,6 +3,7 @@ import {Provider} from './providers/provider';
 import {VodProvider} from './providers/vod-provider';
 import {LiveProvider} from './providers/live-provider';
 import Logger = KalturaPlayerTypes.Logger;
+import EventManager = KalturaPlayerTypes.EventManager;
 
 export class CuepointService {
   private _types: Map<string, boolean> = new Map();
@@ -19,9 +20,12 @@ export class CuepointService {
     // Captions: 'Captions'
   };
 
-  constructor(player: Player, logger: any) {
+  constructor(player: Player, eventManager: EventManager, logger: any) {
     this._logger = logger;
     this._player = player;
+    eventManager.listen(this._player, this._player.Event.CHANGE_SOURCE_ENDED, () => {
+      this._initProvider();
+    });
   }
 
   public register(types: string[]) {
@@ -39,7 +43,7 @@ export class CuepointService {
     });
   }
 
-  public init() {
+  public _initProvider() {
     if (this._types.size == 0) {
       return;
     }
