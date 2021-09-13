@@ -1,6 +1,7 @@
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import sinon from 'sinon/pkg/sinon';
+import * as KalturaPlayer from 'kaltura-player-js';
 
 /**
  * @returns {void}
@@ -12,6 +13,7 @@ export function prepareTestEnvironment() {
   global.expect = chai.expect;
   global.should = chai.should;
   global.sinon = sinon;
+  global.KalturaPlayer = KalturaPlayer;
 }
 
 export default prepareTestEnvironment;

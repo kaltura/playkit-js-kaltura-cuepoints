@@ -15,6 +15,8 @@ declare namespace KalturaPlayerTypes {
     destroy(): void;
     reset(): void;
     registerService(name: string, service: Object): void;
+    hasService(name: string): boolean;
+    getService(name: string): Object;
     getView: () => Node;
     getMediaInfo: () => any;
     paused: boolean;

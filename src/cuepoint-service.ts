@@ -43,7 +43,9 @@ export class CuepointService {
     });
   }
 
-  public _initProvider() {
+  private _initProvider() {
+    this._mediaLoaded = true;
+
     if (this._types.size == 0) {
       return;
     }
@@ -53,7 +55,6 @@ export class CuepointService {
     } else {
       this._provider = new VodProvider(this._player, this._types);
     }
-    this._mediaLoaded = true;
   }
 
   public reset(): void {

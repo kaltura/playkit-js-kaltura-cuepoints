@@ -66,7 +66,6 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules']
   },
   externals: {
-    preact: 'root KalturaPlayer.ui.preact',
     'kaltura-player-js': ['KalturaPlayer']
   }
 };
