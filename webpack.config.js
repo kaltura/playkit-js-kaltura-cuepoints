@@ -14,13 +14,13 @@ const plugins = [
 module.exports = {
   context: __dirname + '/src',
   entry: {
-    'playkit-cuepoints': 'index.ts'
+    'playkit-kaltura-cuepoints': 'index.ts'
   },
   output: {
     path: __dirname + '/dist',
     filename: '[name].js',
-    library: ['KalturaPlayer', 'plugins', 'cuepoints'],
-    devtoolModuleFilenameTemplate: './cuepoints/[resource-path]'
+    library: ['KalturaPlayer', 'plugins', 'kalturaCuepoints'],
+    devtoolModuleFilenameTemplate: './kalturaCuepoints/[resource-path]'
   },
   devtool: 'source-map',
   plugins: plugins,
@@ -46,15 +46,14 @@ module.exports = {
               modules: {
                 localIdentName: '[name]__[local]___[hash:base64:5]',
                 exportLocalsConvention: 'camelCase'
-              },
-
+              }
             }
           },
           {
             loader: 'sass-loader'
           }
         ]
-      },
+      }
     ]
   },
   devServer: {

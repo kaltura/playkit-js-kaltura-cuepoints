@@ -36,8 +36,8 @@ describe('Cue points plugin', function () {
   });
   afterEach(() => {
     sandbox.restore();
-    if (player.hasService('cuepoints')) {
-      player.getService('cuepoints').reset();
+    if (player.hasService('kalturaCuepoints')) {
+      player.getService('kalturaCuepoints').reset();
     }
     player.destroy();
     player = null;
@@ -50,20 +50,20 @@ describe('Cue points plugin', function () {
 
   describe('Cue points', () => {
     it('should check cuepoint service has been registered in KP as service', done => {
-      if (player.hasService('cuepoints')) {
+      if (player.hasService('kalturaCuepoints')) {
         done();
       }
     });
 
     it('should try and register to get "slides" cue points', done => {
-      const cps = player.getService('cuepoints');
+      const cps = player.getService('kalturaCuepoints');
       cps.registerTypes([cps.CuepointType.Slides]);
       expect(cps._types.get(cps.CuepointType.Slides)).to.eql(true);
       done();
     });
 
     it('should try and fail to register to get "slides" cue points after change source ended', done => {
-      const cps = player.getService('cuepoints');
+      const cps = player.getService('kalturaCuepoints');
       player.configure(sourcesConfig);
       cps.registerTypes([cps.CuepointType.Slides]);
       expect(cps._types.get(cps.CuepointType.Slides)).to.not.eql(true);
@@ -71,7 +71,7 @@ describe('Cue points plugin', function () {
     });
 
     it('should reset the service', done => {
-      const cps = player.getService('cuepoints');
+      const cps = player.getService('kalturaCuepoints');
       cps.registerTypes([cps.CuepointType.Slides]);
       player.configure(sourcesConfig);
       let providerDestroy = sandbox.spy(cps._provider, 'destroy');

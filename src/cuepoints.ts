@@ -13,7 +13,7 @@ export class Cuepoints extends KalturaPlayer.core.BasePlugin {
     super(name, player);
 
     this._cuePointService = new CuepointService(player, this.eventManager, this.logger);
-    player.registerService('cuepoints', this._cuePointService);
+    player.registerService('kalturaCuepoints', this._cuePointService);
   }
 
   reset() {

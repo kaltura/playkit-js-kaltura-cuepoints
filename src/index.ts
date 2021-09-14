@@ -1,5 +1,3 @@
-/// <reference path="./global.d.ts" />
-
 import {Cuepoints} from './cuepoints';
 
 declare var __VERSION__: string;
@@ -11,5 +9,5 @@ const NAME = __NAME__;
 export {Cuepoints as Plugin};
 export {VERSION, NAME};
 
-const pluginName: string = 'cuepoints';
+const pluginName: string = 'kalturaCuepoints';
 KalturaPlayer.core.registerPlugin(pluginName, Cuepoints);
