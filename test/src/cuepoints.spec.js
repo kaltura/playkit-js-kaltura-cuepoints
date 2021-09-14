@@ -4,9 +4,9 @@ import {core} from 'kaltura-player-js';
 import {Cuepoints} from '../../src';
 const {EventType, FakeEvent, Cue} = core;
 
-describe('KDualscreenPlugin', function () {
+describe('Cue points plugin', function () {
   let player, sandbox;
-  const target = 'player-placeholder_dualscreen.spec';
+  const target = 'player-placeholder';
   const sourcesConfig = {
     sources: {
       progressive: [
@@ -57,7 +57,7 @@ describe('KDualscreenPlugin', function () {
 
     it('should try and register to get "slides" cue points', done => {
       const cps = player.getService('cuepoints');
-      cps.register([cps.CuepointType.Slides]);
+      cps.registerTypes([cps.CuepointType.Slides]);
       expect(cps._types.get(cps.CuepointType.Slides)).to.eql(true);
       done();
     });
@@ -65,14 +65,14 @@ describe('KDualscreenPlugin', function () {
     it('should try and fail to register to get "slides" cue points after change source ended', done => {
       const cps = player.getService('cuepoints');
       player.configure(sourcesConfig);
-      cps.register([cps.CuepointType.Slides]);
+      cps.registerTypes([cps.CuepointType.Slides]);
       expect(cps._types.get(cps.CuepointType.Slides)).to.not.eql(true);
       done();
     });
 
     it('should reset the service', done => {
       const cps = player.getService('cuepoints');
-      cps.register([cps.CuepointType.Slides]);
+      cps.registerTypes([cps.CuepointType.Slides]);
       player.configure(sourcesConfig);
       let providerDestroy = sandbox.spy(cps._provider, 'destroy');
 

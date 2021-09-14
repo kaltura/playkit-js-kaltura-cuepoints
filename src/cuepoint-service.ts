@@ -28,7 +28,7 @@ export class CuepointService {
     });
   }
 
-  public register(types: string[]) {
+  public registerTypes(types: string[]) {
     if (this._mediaLoaded) {
       this._logger.warn('Registration should occur on loadMedia (or before)');
       return;
