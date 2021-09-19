@@ -30,7 +30,7 @@ describe('Cue points plugin', function () {
       targetId: target,
       provider: {},
       plugins: {
-        cuepoints: {}
+        kalturaCuepoints: {}
       }
     });
   });
