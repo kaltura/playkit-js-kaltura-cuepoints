@@ -15,7 +15,7 @@ export class CuepointService {
     // All: 'All',
     // AnswersOnAir: 'AnswersOnAir',
     // Chapters: 'Chapters',
-    Slides: 'Slides'
+    SLIDE: 'slide'
     // Hotspots: 'Hotspots',
     // Captions: 'Captions'
   };
