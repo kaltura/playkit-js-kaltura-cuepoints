@@ -2,22 +2,18 @@ import Player = KalturaPlayerTypes.Player;
 import {Provider} from './providers/provider';
 import {VodProvider} from './providers/vod-provider';
 import {LiveProvider} from './providers/live-provider';
+import {CuepointType, CuepointTypeMap} from './types';
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 
 export class CuepointService {
-  private _types: Map<string, boolean> = new Map();
+  private _types: CuepointTypeMap = new Map();
   private _provider: Provider | undefined;
   private _player: Player;
   private _logger: Logger;
   private _mediaLoaded: boolean = false;
-  public CuepointType: {[mode: string]: string} = {
-    // All: 'All',
-    // AnswersOnAir: 'AnswersOnAir',
-    // Chapters: 'Chapters',
-    SLIDE: 'slide'
-    // Hotspots: 'Hotspots',
-    // Captions: 'Captions'
+  public CuepointType = {
+    ...CuepointType
   };
 
   constructor(player: Player, eventManager: EventManager, logger: any) {
@@ -51,9 +47,9 @@ export class CuepointService {
     }
 
     if (this._player.isLive()) {
-      this._provider = new LiveProvider(this._player, this._types);
+      this._provider = new LiveProvider(this._player, this._logger, this._types);
     } else {
-      this._provider = new VodProvider(this._player, this._types);
+      this._provider = new VodProvider(this._player, this._logger, this._types);
     }
   }
 
