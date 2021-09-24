@@ -1,4 +1,5 @@
-import {APIResponse, ClientApi, isAPIErrorResponse, RegisterRequestParams, RegisterRequestResponse} from './client-api';
+import {APIResponse, ClientApi, isAPIErrorResponse, RegisterRequestResponse} from './client-api';
+import {RegisterRequestParams} from './push-notification-loader';
 import {SocketWrapper} from './socket-wrapper';
 import {getDomainFromUrl} from './utils';
 
@@ -40,13 +41,13 @@ export class PushNotifications {
   private _socketPool: any = {};
   private _clientApi: any;
 
-  constructor(options: PushNotificationsOptions, private _logger: KalturaPlayerTypes.Logger) {
-    this._clientApi = new ClientApi(options);
-    this._onPlayerReset(options);
+  constructor(private _player: KalturaPlayerTypes.Player, private _logger: KalturaPlayerTypes.Logger) {
+    this._clientApi = new ClientApi(_player, _logger);
+    this._onPlayerReset();
   }
 
-  private _onPlayerReset(options: PushNotificationsOptions) {
-    options.kalturaPlayer.addEventListener(options.kalturaPlayer.Event.PLAYER_RESET, () => {
+  private _onPlayerReset() {
+    this._player.addEventListener(this._player.Event.PLAYER_RESET, () => {
       this.reset();
     });
   }
@@ -129,12 +130,15 @@ export class PushNotifications {
     const socketKey = getDomainFromUrl(result.url);
     let socketWrapper = this._socketPool[socketKey];
     if (!socketWrapper) {
-      socketWrapper = new SocketWrapper({
-        key: socketKey,
-        url: result.url,
-        onSocketDisconnect,
-        onSocketReconnect
-      }, this._logger);
+      socketWrapper = new SocketWrapper(
+        {
+          key: socketKey,
+          url: result.url,
+          onSocketDisconnect,
+          onSocketReconnect
+        },
+        this._logger
+      );
       this._socketPool[socketKey] = socketWrapper;
     }
 

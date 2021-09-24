@@ -38,12 +38,12 @@ export class PushNotificationPrivider {
   on: EventsManager<Events>['on'] = this._events.on.bind(this._events);
   off: EventsManager<Events>['off'] = this._events.off.bind(this._events);
 
-  constructor(private _logger: KalturaPlayerTypes.Logger) {}
+  constructor(private _player: KalturaPlayerTypes.Player, private _logger: KalturaPlayerTypes.Logger) {}
 
-  public init(pushServerOptions: PushNotificationsOptions) {
+  public init() {
     if (this._initialized) return;
     this._initialized = true;
-    this._pushServerInstance = new PushNotifications(pushServerOptions, this._logger);
+    this._pushServerInstance = new PushNotifications(this._player, this._logger);
   }
 
   /**
@@ -110,7 +110,6 @@ export class PushNotificationPrivider {
         entryId: entryId
       },
       onMessage: (response: any[]) => {
-        console.log('>> onMessage', response);
         this._events.emit({
           type: PushNotificationEventTypes.ThumbNotification,
           thumbs: response
@@ -127,7 +126,6 @@ export class PushNotificationPrivider {
         entryId: entryId
       },
       onMessage: (response: any[]) => {
-        console.log('>> onMessage', response);
         this._events.emit({
           type: PushNotificationEventTypes.SlideNotification,
           slides: response // TODO: prepare slides
@@ -144,7 +142,6 @@ export class PushNotificationPrivider {
         entryId: entryId
       },
       onMessage: (response: any[]) => {
-        console.log('>> onMessage', response);
         this._events.emit({
           type: PushNotificationEventTypes.PublicNotifications,
           messages: response

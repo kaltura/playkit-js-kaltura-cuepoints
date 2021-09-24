@@ -1,4 +1,5 @@
-import {io, Socket} from 'socket.io-client';
+import * as io from 'socket.io-client';
+import Socket = SocketIOClient.Socket;
 import {Utils} from './utils';
 
 export interface ListenKeysObject {
