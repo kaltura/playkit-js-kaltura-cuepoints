@@ -1,6 +1,31 @@
 import {EventsManager} from './events-manager';
-import {PrepareRegisterRequestConfig, PushNotifications, PushNotificationsOptions} from './push-notifications';
+import {PrepareRegisterRequestConfig, PushNotifications} from './push-notifications';
 import {CuepointTypeMap, CuepointType} from '../../types';
+
+export interface PushNotificationData {
+  cuePointType: string; // "codeCuePoint.Code", "thumbCuePoint.Thumb"
+  entryId: string;
+  id: string;
+  objectType: string; // "KalturaCodeCuePoint", "KalturaThumbCuePoint"
+  partnerData: string;
+  partnerId: number;
+  startTime: number;
+  status: number; // 1
+  tags: string; // "change-view-mode", "select-a-thumb"
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ThumbPushNotificationData extends PushNotificationData {
+  endTime?: number;
+  assetId: string;
+  subType: number;
+}
+
+export interface SlideViewChangePushNotificationData extends PushNotificationData {
+  duration: number;
+  code: string;
+}
 
 export enum PushNotificationEventTypes {
   PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS',
@@ -10,7 +35,7 @@ export enum PushNotificationEventTypes {
 }
 export interface PublicNotificationsEvent {
   type: PushNotificationEventTypes.PublicNotifications;
-  messages: any[];
+  messages: PushNotificationData[]; // TODO: add interface
 }
 export interface NotificationsErrorEvent {
   type: PushNotificationEventTypes.PushNotificationsError;
@@ -18,13 +43,13 @@ export interface NotificationsErrorEvent {
 }
 export interface ThumbNotificationsEvent {
   type: PushNotificationEventTypes.ThumbNotification;
-  thumbs: any[];
+  thumbs: ThumbPushNotificationData[];
 }
-export interface SlideNotificationsEvent {
+export interface SlideViewChangeNotificationsEvent {
   type: PushNotificationEventTypes.SlideNotification;
-  slides: any[];
+  slideViewChanges: SlideViewChangePushNotificationData[];
 }
-type Events = ThumbNotificationsEvent | SlideNotificationsEvent | PublicNotificationsEvent | NotificationsErrorEvent;
+type Events = ThumbNotificationsEvent | SlideViewChangeNotificationsEvent | PublicNotificationsEvent | NotificationsErrorEvent;
 
 /**
  * handles push notification registration and results.
@@ -73,7 +98,7 @@ export class PushNotificationPrivider {
 
     if (types.has(CuepointType.SLIDE)) {
       registrationConfigs.push(this._createThumbRegistration(entryId));
-      registrationConfigs.push(this._createSlideRegistration(entryId));
+      registrationConfigs.push(this._createSlideViewChangeRegistration(entryId));
     }
 
     if (types.has(CuepointType.AOA)) {
@@ -118,7 +143,7 @@ export class PushNotificationPrivider {
     };
   }
 
-  private _createSlideRegistration(entryId: string): PrepareRegisterRequestConfig {
+  private _createSlideViewChangeRegistration(entryId: string): PrepareRegisterRequestConfig {
     this._logger.info('Register slide notification');
     return {
       eventName: PushNotificationEventTypes.SlideNotification,
@@ -128,7 +153,7 @@ export class PushNotificationPrivider {
       onMessage: (response: any[]) => {
         this._events.emit({
           type: PushNotificationEventTypes.SlideNotification,
-          slides: response // TODO: prepare slides
+          slideViewChanges: response
         });
       }
     };

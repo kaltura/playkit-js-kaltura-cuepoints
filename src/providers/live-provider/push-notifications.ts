@@ -20,13 +20,6 @@ export interface RegisterNotificationsParams {
   onSocketReconnect?: Function;
 }
 
-export interface PushNotificationsOptions {
-  ks: string;
-  serviceUrl: string;
-  clientTag: string;
-  kalturaPlayer: KalturaPlayerTypes.Player;
-}
-
 export interface APINotificationResponse extends APIResponse {
   url: string;
   queueName: string;
@@ -56,7 +49,6 @@ export class PushNotifications {
     for (const socketKey in this._socketPool) {
       this._socketPool[socketKey].destroy();
     }
-
     this._socketPool = {};
   }
 

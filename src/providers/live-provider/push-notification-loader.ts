@@ -1,4 +1,4 @@
-const {RequestBuilder, ResponseTypes} = KalturaPlayer.providers;
+const {RequestBuilder} = KalturaPlayer.providers;
 
 export interface PushNotificationParams extends Record<string, any> {
   objectType: string;
@@ -18,9 +18,9 @@ export class PushNotificationLoader implements KalturaPlayerTypes.ILoader {
   static get id(): string {
     return 'cuepoint-service';
   }
-  constructor(private _params: RegisterRequestParams[]) {
+  constructor(private _apiRequests: RegisterRequestParams[]) {
     const headers: Map<string, string> = new Map();
-    _params.forEach(apiRequest => {
+    _apiRequests.forEach(apiRequest => {
       const request = new RequestBuilder(headers);
       const {action, service, ...other} = apiRequest;
       request.action = action;
@@ -45,6 +45,6 @@ export class PushNotificationLoader implements KalturaPlayerTypes.ILoader {
     return this._response;
   }
   isValid(): boolean {
-    return this._params.length > 0;
+    return this._apiRequests.length > 0;
   }
 }
