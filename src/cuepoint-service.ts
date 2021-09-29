@@ -10,6 +10,7 @@ export class CuepointService {
   private _types: CuepointTypeMap = new Map();
   private _provider: Provider | undefined;
   private _player: Player;
+  private _eventManager: EventManager; 
   private _logger: Logger;
   private _mediaLoaded: boolean = false;
   public CuepointType = {
@@ -19,6 +20,7 @@ export class CuepointService {
   constructor(player: Player, eventManager: EventManager, logger: any) {
     this._logger = logger;
     this._player = player;
+    this._eventManager = eventManager;
     eventManager.listen(this._player, this._player.Event.CHANGE_SOURCE_ENDED, () => {
       this._initProvider();
     });
@@ -47,9 +49,9 @@ export class CuepointService {
     }
 
     if (this._player.isLive()) {
-      this._provider = new LiveProvider(this._player, this._logger, this._types);
+      this._provider = new LiveProvider(this._player, this._eventManager, this._logger, this._types);
     } else {
-      this._provider = new VodProvider(this._player, this._logger, this._types);
+      this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types);
     }
   }
 

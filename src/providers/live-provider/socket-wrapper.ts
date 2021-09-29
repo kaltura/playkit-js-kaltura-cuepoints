@@ -20,14 +20,11 @@ export class SocketWrapper {
   public static CONNECTION_TIMEOUT: number = 10 * 60 * 1000;
 
   private _socket: Socket | any;
-  private _key: string | null;
   private _listenKeys: Record<string, ListenKeysObject> = {};
   private _messageKeyToQueueKeyMap: Record<string, string> = {};
   private _connected = false;
 
   constructor(socketWrapperParams: SocketWrapperParams, private _logger: KalturaPlayerTypes.Logger) {
-    this._key = socketWrapperParams.key;
-
     this._logger.info(`Connecting to socket`);
     this._connectAndListenToSocket(socketWrapperParams);
   }
@@ -41,12 +38,10 @@ export class SocketWrapper {
     this._listenKeys = {};
     this._messageKeyToQueueKeyMap = {};
     this._connected = false;
-    this._key = null;
   }
 
   private _connectAndListenToSocket(socketWrapperParams: SocketWrapperParams) {
     this._logger.info('connect to socket');
-
     this._socket = io(socketWrapperParams.url, {
       forceNew: true,
       timeout: SocketWrapper.CONNECTION_TIMEOUT
@@ -57,7 +52,6 @@ export class SocketWrapper {
 
       for (const key in this._listenKeys) {
         this._logger.info('Emit listen to url');
-
         this._socket.emit('listen', this._listenKeys[key].queueNameHash, this._listenKeys[key].queueKeyHash);
       }
     });
@@ -73,7 +67,6 @@ export class SocketWrapper {
 
     this._socket.on('message', (messageKey: string, msg: any) => {
       this._logger.debug('Cannot listen to queue, queueKeyHash not recognized');
-
       if (this._messageKeyToQueueKeyMap[messageKey] && this._listenKeys[this._messageKeyToQueueKeyMap[messageKey]]) {
         this._listenKeys[this._messageKeyToQueueKeyMap[messageKey]].onMessage.forEach(cb => {
           cb(msg);
