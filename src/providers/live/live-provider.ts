@@ -1,3 +1,3 @@
-import {Provider} from './provider';
+import {Provider} from '../provider';
 
 export class LiveProvider extends Provider {}
