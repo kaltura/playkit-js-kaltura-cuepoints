@@ -2,6 +2,7 @@ import {setup} from 'kaltura-player-js';
 import * as TestUtils from './utils/test-utils';
 import {core} from 'kaltura-player-js';
 import {CuepointType} from '../../src/constants';
+import {Cuepoints} from '../../src';
 const {EventType, FakeEvent, Cue} = core;
 
 describe('Cue points plugin', function () {
@@ -48,26 +49,26 @@ describe('Cue points plugin', function () {
     TestUtils.removeElement(target);
   });
 
-  describe.skip('Cue points', () => {
+  describe('Cue points', () => {
     it('should check cuepoint service has been registered in KP as service', () => {
       expect(player.hasService('kalturaCuepoints')).to.eql(true);
     });
 
-    it('should try and register to get "slides" cue points', () => {
+    it.skip('should try and register to get "slides" cue points', () => {
       const cps = player.getService('kalturaCuepoints');
-      cps.registerTypes([CuepointType.SLIDE]);
-      expect(cps._types.get(CuepointType.SLIDE)).to.eql(true);
+      cps.registerTypes([cps.CuepointType.SLIDE]);
+      expect(cps._types.get(cps.CuepointType.SLIDE)).to.eql(true);
     });
 
     it('should try and fail to register to get "slides" cue points after change source ended', () => {
       const cps = player.getService('kalturaCuepoints');
-      cps.registerTypes([CuepointType.SLIDE]);
-      expect(cps._types.get(CuepointType.SLIDE)).to.not.eql(true);
+      cps.registerTypes([cps.CuepointType.SLIDE]);
+      expect(cps._types.get(cps.CuepointType.SLIDE)).to.not.eql(true);
     });
 
-    it('should reset the service', () => {
+    it.skip('should reset the service', () => {
       const cps = player.getService('kalturaCuepoints');
-      cps.registerTypes([CuepointType.SLIDE]);
+      cps.registerTypes([cps.CuepointType.SLIDE]);
       let providerDestroy = sandbox.spy(cps._provider, 'destroy');
 
       cps.reset();

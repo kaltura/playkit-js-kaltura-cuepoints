@@ -31,7 +31,7 @@ export enum PushNotificationEventTypes {
   PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS',
   PushNotificationsError = 'PUSH_NOTIFICATIONS_ERROR',
   ThumbNotification = 'THUMB_CUE_POINT_READY_NOTIFICATION',
-  SlideNotification = 'SLIDE_VIEW_CHANGE_CODE_CUE_POINT'
+  SlideViewChangeNotification = 'SLIDE_VIEW_CHANGE_CODE_CUE_POINT'
 }
 export interface PublicNotificationsEvent {
   type: PushNotificationEventTypes.PublicNotifications;
@@ -46,7 +46,7 @@ export interface ThumbNotificationsEvent {
   thumbs: ThumbPushNotificationData[];
 }
 export interface SlideViewChangeNotificationsEvent {
-  type: PushNotificationEventTypes.SlideNotification;
+  type: PushNotificationEventTypes.SlideViewChangeNotification;
   slideViewChanges: SlideViewChangePushNotificationData[];
 }
 type Events = ThumbNotificationsEvent | SlideViewChangeNotificationsEvent | PublicNotificationsEvent | NotificationsErrorEvent;
@@ -146,13 +146,13 @@ export class PushNotificationPrivider {
   private _createSlideViewChangeRegistration(entryId: string): PrepareRegisterRequestConfig {
     this._logger.info('Register slide notification');
     return {
-      eventName: PushNotificationEventTypes.SlideNotification,
+      eventName: PushNotificationEventTypes.SlideViewChangeNotification,
       eventParams: {
         entryId: entryId
       },
       onMessage: (response: any[]) => {
         this._events.emit({
-          type: PushNotificationEventTypes.SlideNotification,
+          type: PushNotificationEventTypes.SlideViewChangeNotification,
           slideViewChanges: response
         });
       }

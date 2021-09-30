@@ -1,6 +1,5 @@
 export const CuepointType: {[mode: string]: string} = {
-  // All: 'All',
-  // AnswersOnAir: 'AnswersOnAir',
+  AOA: 'aoa',
   // Chapters: 'Chapters',
   SLIDE: 'slide'
   // Hotspots: 'Hotspots',

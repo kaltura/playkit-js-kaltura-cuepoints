@@ -163,7 +163,7 @@ export class LiveProvider extends Provider {
     this._pushNotification.on(PushNotificationEventTypes.PushNotificationsError, this._handlePushNotificationsErrorData);
 
     if (this._types.has(CuepointType.SLIDE)) {
-      this._pushNotification.on(PushNotificationEventTypes.SlideNotification, this._handleSlideViewChangeNotificationData);
+      this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
       this._pushNotification.on(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
     if (this._types.has(CuepointType.AOA)) {
@@ -175,7 +175,7 @@ export class LiveProvider extends Provider {
     this._pushNotification.off(PushNotificationEventTypes.PushNotificationsError, this._handlePushNotificationsErrorData);
 
     if (this._types.has(CuepointType.SLIDE)) {
-      this._pushNotification.off(PushNotificationEventTypes.SlideNotification, this._handleSlideViewChangeNotificationData);
+      this._pushNotification.off(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
       this._pushNotification.off(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
     if (this._types.has(CuepointType.AOA)) {
