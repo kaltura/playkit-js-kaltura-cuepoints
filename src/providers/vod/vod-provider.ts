@@ -14,7 +14,7 @@ export class VodProvider extends Provider {
   _fetchVodData() {
     let subTypesFilter = '';
     if (this._types.has(KalturaCuePointType.SLIDE)) {
-      subTypesFilter = `${subTypesFilter}${KalturaThumbCuePointSubType.SLIDE},`;
+      subTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
     }
 
     // preparation for chapters
