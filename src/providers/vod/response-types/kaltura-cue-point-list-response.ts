@@ -19,7 +19,6 @@ export class KalturaCuePointListResponse {
   constructor(responseObj: any) {
     this.totalCount = responseObj.totalCount;
     if (this.totalCount > 0) {
-      this.thumbCuePoints = [];
       responseObj.objects.map((cuePoint: any) => this.thumbCuePoints.push(new KalturaThumbCuePoint(cuePoint)));
     }
   }

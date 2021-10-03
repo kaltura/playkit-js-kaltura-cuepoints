@@ -29,7 +29,6 @@
     "documentation": "latest",
     "husky": "^4.2.5",
     "istanbul": "^0.4.5",
-    "kaltura-player-js": "https://github.com/kaltura/kaltura-player-js.git#master",
     "karma": "^5.1.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^3.1.0",
@@ -60,9 +59,7 @@
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
   },
-  "peerDependencies": {
-    "kaltura-player-js": "https://github.com/kaltura/kaltura-player-js.git#v1.0.0"
-  },
+  "peerDependencies": {},
   "publishConfig": {
     "access": "public"
   },
@@ -74,5 +71,8 @@
     "playkit-js",
     "playkit-js-kaltura-cuepoints",
     "html5 player"
-  ]
+  ],
+  "dependencies": {
+    "kaltura-player-js": "https://github.com/kaltura/kaltura-player-js.git#master"
+  }
 }
