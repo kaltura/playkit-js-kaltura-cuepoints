@@ -10,6 +10,7 @@ export class Provider {
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: Map<string, boolean>) {
     this._types = types;
+    this._logger = logger;
     this._player = player;
     this._eventManager = eventManager;
     this._logger = logger;
