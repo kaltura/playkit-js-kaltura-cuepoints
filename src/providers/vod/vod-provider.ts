@@ -4,6 +4,7 @@ import {ThumbLoader} from './thumb-loader';
 import {KalturaThumbCuePoint} from './response-types/kaltura-thumb-cue-point';
 import Logger = KalturaPlayerTypes.Logger;
 import {KalturaCuePointType, KalturaThumbCuePointSubType} from '../../cuepoint-service';
+const DEFAULT_SERVICE_URL = 'https://cdnapisec.kaltura.com/api_v3';
 
 export class VodProvider extends Provider {
   constructor(player: Player, logger: Logger, types: Map<string, boolean>) {
@@ -22,22 +23,22 @@ export class VodProvider extends Provider {
     //   subTypesFilter = `${subTypesFilter}${KalturaCuePoints.KalturaThumbCuePointSubType.CHAPTER},`;
     // }
 
-
-    let requests : Array<ProviderRequest> = [];
-    if (thumbSubTypesFilter){
-      requests.push({loader: ThumbLoader, params: {entryId: this._player.getMediaInfo().entryId, subTypesFilter: thumbSubTypesFilter}})
+    let requests: Array<ProviderRequest> = [];
+    if (thumbSubTypesFilter) {
+      requests.push({loader: ThumbLoader, params: {entryId: this._player.getMediaInfo().entryId, subTypesFilter: thumbSubTypesFilter}});
     }
-
-    this._player.provider
-      .doRequest(requests)
-      .then((data: Map<string, any>) => {
-        if (data && data.has(ThumbLoader.id)) {
-          this._handleThumbResponse(data);
-        }
-      })
-      .catch((e: any) => {
-        this._logger.warn("Provider cue points doRequest was rejected - ", e);
-      });
+    if (requests.length) {
+      this._player.provider
+        .doRequest(requests)
+        .then((data: Map<string, any>) => {
+          if (data && data.has(ThumbLoader.id)) {
+            this._handleThumbResponse(data);
+          }
+        })
+        .catch((e: any) => {
+          this._logger.warn('Provider cue points doRequest was rejected - ', e);
+        });
+    }
   }
 
   private _handleThumbResponse(data: Map<string, any>) {
@@ -53,7 +54,7 @@ export class VodProvider extends Provider {
     }
 
     function sortCuepoints(cuePoints: {cuePointType: string; startTime: number; id: string; assetUrl: string}[]) {
-      return cuePoints.sort(function(a: any, b: any) {
+      return cuePoints.sort(function (a: any, b: any) {
         return a.startTime - b.startTime;
       });
     }
@@ -74,11 +75,8 @@ export class VodProvider extends Provider {
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
     const ks = this._player.config.session.ks || '';
-    const serviceUrl = this._player.config.provider?.env.serviceUrl || '';
-    if (!ks || !serviceUrl) {
-      this._logger.warn('Missing ks or serviceUrl to create thumb cue points');
-    }
-    else if (thumbCuePoints.length) {
+    const serviceUrl = this._player.config.provider?.env.serviceUrl || DEFAULT_SERVICE_URL;
+    if (thumbCuePoints.length) {
       let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
       cuePoints = sortCuepoints(cuePoints);
       cuePoints = fixCuePointsEndTime(cuePoints);
