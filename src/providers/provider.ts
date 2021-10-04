@@ -1,7 +1,12 @@
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
+import ILoader = KalturaPlayerTypes.ILoader;
 
+export interface ProviderRequest {
+  loader: Function,
+  params: any
+}
 export class Provider {
   protected _types: Map<string, boolean>;
   protected _player: Player;

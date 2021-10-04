@@ -1,10 +1,11 @@
-import {Provider} from '../provider';
+import {Provider, ProviderRequest} from '../provider';
 import {ThumbLoader} from './thumb-loader';
 import {KalturaThumbCuePoint} from './response-types/kaltura-thumb-cue-point';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
+const DEFAULT_SERVICE_URL = '//cdnapisec.kaltura.com/api_v3';
 
 export class VodProvider extends Provider {
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
@@ -13,9 +14,9 @@ export class VodProvider extends Provider {
   }
 
   _fetchVodData() {
-    let subTypesFilter = '';
+    let thumbSubTypesFilter = '';
     if (this._types.has(KalturaCuePointType.SLIDE)) {
-      subTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
+      thumbSubTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
     }
 
     // preparation for chapters
@@ -23,10 +24,26 @@ export class VodProvider extends Provider {
     //   subTypesFilter = `${subTypesFilter}${KalturaCuePoints.KalturaThumbCuePointSubType.CHAPTER},`;
     // }
 
-    const ks = this._player.config.session.ks;
-    const serviceUrl = this._player.config.provider.env.serviceUrl;
+    let requests: Array<ProviderRequest> = [];
+    if (thumbSubTypesFilter) {
+      requests.push({loader: ThumbLoader, params: {entryId: this._player.getMediaInfo().entryId, subTypesFilter: thumbSubTypesFilter}});
+    }
+    if (requests.length) {
+      this._player.provider
+        .doRequest(requests)
+        .then((data: Map<string, any>) => {
+          if (data && data.has(ThumbLoader.id)) {
+            this._handleThumbResponse(data);
+          }
+        })
+        .catch((e: any) => {
+          this._logger.warn('Provider cue points doRequest was rejected - ', e);
+        });
+    }
+  }
 
-    function createCuePointList(thumbCuePoints: Array<KalturaThumbCuePoint>) {
+  private _handleThumbResponse(data: Map<string, any>) {
+    function createCuePointList(thumbCuePoints: Array<KalturaThumbCuePoint>, ks: string, serviceUrl: string) {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
           assetUrl: `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${thumbCuePoint.assetId}/ks/${ks}`,
@@ -55,24 +72,16 @@ export class VodProvider extends Provider {
       });
     }
 
-    this._player.provider
-      .doRequest([{loader: ThumbLoader, params: {entryId: this._player.getMediaInfo().entryId, subTypesFilter: subTypesFilter}}])
-      .then((data: Map<string, any>) => {
-        if (data && data.has(ThumbLoader.id)) {
-          const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
-          const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
-          this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
-
-          if (thumbCuePoints.length) {
-            let cuePoints = createCuePointList(thumbCuePoints);
-            cuePoints = sortCuepoints(cuePoints);
-            cuePoints = fixCuePointsEndTime(cuePoints);
-            this._player.cuePointManager.addCuePoints(cuePoints);
-          }
-        }
-      })
-      .catch((e: any) => {
-        this._logger.warn(`Provider cue points doRequest was rejected - ${e}`);
-      });
+    const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
+    const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
+    this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
+    const ks = this._player.config.session.ks || '';
+    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
+    if (thumbCuePoints.length) {
+      let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
+      cuePoints = sortCuepoints(cuePoints);
+      cuePoints = fixCuePointsEndTime(cuePoints);
+      this._player.cuePointManager.addCuePoints(cuePoints);
+    }
   }
 }
