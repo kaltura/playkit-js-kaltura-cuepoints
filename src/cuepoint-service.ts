@@ -2,33 +2,17 @@ import Player = KalturaPlayerTypes.Player;
 import {Provider} from './providers/provider';
 import {VodProvider} from './providers/vod/vod-provider';
 import {LiveProvider} from './providers/live/live-provider';
-import {CuepointType, CuepointTypeMap} from './types';
+import {CuepointTypeMap, KalturaCuePointType, KalturaThumbCuePointSubType} from './types';
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-
-export enum KalturaThumbCuePointSubType {
-  CHAPTER = 2,
-  SLIDE = 1
-}
-export enum KalturaCuePointType {
-  // All: 'All',
-  // AnswersOnAir: 'AnswersOnAir',
-  // Chapters: 'Chapters',
-  SLIDE = 'slide'
-  // Hotspots: 'Hotspots',
-  // Captions: 'Captions'
-}
 
 export class CuepointService {
   private _types: CuepointTypeMap = new Map();
   private _provider: Provider | undefined;
   private _player: Player;
-  private _eventManager: EventManager; 
+  private _eventManager: EventManager;
   private _logger: Logger;
   private _mediaLoaded: boolean = false;
-  public CuepointType = {
-    ...CuepointType
-  };
 
   public get CuepointType() {
     return KalturaCuePointType;

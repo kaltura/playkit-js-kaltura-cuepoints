@@ -1,13 +1,14 @@
 import {Provider} from '../provider';
-import Player = KalturaPlayerTypes.Player;
 import {ThumbLoader} from './thumb-loader';
 import {KalturaThumbCuePoint} from './response-types/kaltura-thumb-cue-point';
+import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
+import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
-import {KalturaCuePointType, KalturaThumbCuePointSubType} from '../../cuepoint-service';
+import EventManager = KalturaPlayerTypes.EventManager;
 
 export class VodProvider extends Provider {
-  constructor(player: Player, logger: Logger, types: Map<string, boolean>) {
-    super(player, logger, types);
+  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
+    super(player, eventManager, logger, types);
     this._fetchVodData();
   }
 
@@ -37,7 +38,7 @@ export class VodProvider extends Provider {
     }
 
     function sortCuepoints(cuePoints: {cuePointType: string; startTime: number; id: string; assetUrl: string}[]) {
-      return cuePoints.sort(function(a: any, b: any) {
+      return cuePoints.sort(function (a: any, b: any) {
         return a.startTime - b.startTime;
       });
     }
@@ -59,7 +60,7 @@ export class VodProvider extends Provider {
       .then((data: Map<string, any>) => {
         if (data && data.has(ThumbLoader.id)) {
           const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
-          const thumbCuePoints : Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
+          const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
           this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
 
           if (thumbCuePoints.length) {
@@ -71,7 +72,7 @@ export class VodProvider extends Provider {
         }
       })
       .catch((e: any) => {
-        this._logger.warn("Provider cue points doRequest was rejected - ", e);
+        this._logger.warn(`Provider cue points doRequest was rejected - ${e}`);
       });
   }
 }
