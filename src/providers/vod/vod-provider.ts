@@ -4,7 +4,7 @@ import {ThumbLoader} from './thumb-loader';
 import {KalturaThumbCuePoint} from './response-types/kaltura-thumb-cue-point';
 import Logger = KalturaPlayerTypes.Logger;
 import {KalturaCuePointType, KalturaThumbCuePointSubType} from '../../cuepoint-service';
-const DEFAULT_SERVICE_URL = 'https://cdnapisec.kaltura.com/api_v3';
+const DEFAULT_SERVICE_URL = '//cdnapisec.kaltura.com/api_v3';
 
 export class VodProvider extends Provider {
   constructor(player: Player, logger: Logger, types: Map<string, boolean>) {
