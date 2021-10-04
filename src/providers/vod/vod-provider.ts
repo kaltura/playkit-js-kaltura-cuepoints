@@ -22,10 +22,8 @@ export class VodProvider extends Provider {
     //   subTypesFilter = `${subTypesFilter}${KalturaCuePoints.KalturaThumbCuePointSubType.CHAPTER},`;
     // }
 
-    const ks = this._player.config.session.ks;
-    const serviceUrl = this._player.config.provider.env.serviceUrl;
 
-    function createCuePointList(thumbCuePoints: Array<KalturaThumbCuePoint>) {
+    function createCuePointList(thumbCuePoints: Array<KalturaThumbCuePoint>, ks: string, serviceUrl: string) {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
           assetUrl: `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${thumbCuePoint.assetId}/ks/${ks}`,
@@ -61,9 +59,10 @@ export class VodProvider extends Provider {
           const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
           const thumbCuePoints : Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
           this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
-
+          const ks = this._player.config.session.ks || "";
+          const serviceUrl = this._player.config.provider.env.serviceUrl || "";
           if (thumbCuePoints.length) {
-            let cuePoints = createCuePointList(thumbCuePoints);
+            let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
             cuePoints = sortCuepoints(cuePoints);
             cuePoints = fixCuePointsEndTime(cuePoints);
             this._player.cuePointManager.addCuePoints(cuePoints);
