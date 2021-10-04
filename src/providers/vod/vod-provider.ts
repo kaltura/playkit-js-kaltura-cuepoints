@@ -75,7 +75,7 @@ export class VodProvider extends Provider {
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
     const ks = this._player.config.session.ks || '';
-    const serviceUrl = this._player.config.provider?.env.serviceUrl || DEFAULT_SERVICE_URL;
+    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
     if (thumbCuePoints.length) {
       let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
       cuePoints = sortCuepoints(cuePoints);
