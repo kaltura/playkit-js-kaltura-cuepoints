@@ -16,11 +16,12 @@ import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 
 const ID3_TAG_WAIT_TIMEOUT = 500;
+const ID3_TAG_LABEL = 'id3';
 
 export class LiveProvider extends Provider {
   private _pushNotification: PushNotificationPrivider;
   private _thumbCuePoints: ThumbPushNotificationData[] = [];
-  // private _slideViewChangeCuePoints: SlideViewChangePushNotificationData[] = [];
+  private _slideViewChangeCuePoints: SlideViewChangePushNotificationData[] = [];
 
   private _id3Timestamp: number | null = 0;
   private _currentTime = 0;
@@ -36,22 +37,18 @@ export class LiveProvider extends Provider {
     this._addBindings();
   }
 
-  private _onTimedMetadataLoaded = (event: any): void => {
+  private _onTimedMetadataLoaded = ({payload}: any): void => {
     // TODO: handle dash format
-
-    // TODO: condiser take id3 timestamp from text-track (add new API to cue-point manager)
-    // advantage: we can avoid 2 listeners and make run-time calculation of start-time for new cue-points from active id3 VTTCue
-    // disadvantage: id3timestamp comes once per 4 sec, so we'll get those difference in start\end time for cue-points
-    const id3TagCues = event.payload.cues.filter((cue: any) => cue.value && cue.value.key === 'TEXT');
+    const id3TagCues = payload.label === ID3_TAG_LABEL ? payload.cues : [];
     if (id3TagCues.length) {
       try {
         const id3Timestamp = Math.ceil(JSON.parse(id3TagCues[id3TagCues.length - 1].value.data).timestamp / 1000);
-        this._logger.debug(`Calling cuepoint engine updateTime with id3 timestamp: ${id3Timestamp}`);
+        this._logger.debug(`Received new id3 timestamp: ${id3Timestamp}`);
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
         }
       } catch (e) {
-        this._logger.debug('failed retrieving id3 tag metadata');
+        this._logger.debug('Failed retrieving id3 tag metadata');
       }
     }
   };
@@ -106,21 +103,34 @@ export class LiveProvider extends Provider {
     this._constructPushNotificationListener();
   }
 
-  private _handleSlideViewChangeNotificationData({slideViewChanges}: SlideViewChangeNotificationsEvent) {
-    console.log('>> _handleSlideViewChangeNotificationData', slideViewChanges);
-    // TODO: parse partnerData and add cue-point in cue-point manager
-  }
-
-  private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
+  private _prepareCuePoints<T extends ThumbPushNotificationData | SlideViewChangePushNotificationData>(cuePoint: T, cb: (cuePoint: T) => void) {
     if (!this._player.currentTime) {
-      this._id3TagWaitTimeouts[newThumb.id] = setTimeout(() => {
+      this._id3TagWaitTimeouts[cuePoint.id] = setTimeout(() => {
         // wait till id3 tag handled
-        this._prepareThumbCuePoints(newThumb);
+        cb(cuePoint);
       }, ID3_TAG_WAIT_TIMEOUT);
       return;
     }
-    delete this._id3TagWaitTimeouts[newThumb.id];
+    delete this._id3TagWaitTimeouts[cuePoint.id];
+    cb(cuePoint);
+  }
 
+  private _fixCuePointEndTime<T extends ThumbPushNotificationData | SlideViewChangePushNotificationData>(cuePoints: T[]) {
+    return cuePoints
+      .sort((a, b) => {
+        return a.createdAt - b.createdAt;
+      })
+      .map((cue, index) => {
+        // fix endTime and replace VTTCue
+        if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
+          const fixedCue = {...cue, endTime: cuePoints[index + 1].startTime};
+          this._player.cuePointManager.addCuePoints([fixedCue]);
+        }
+        return cue;
+      });
+  }
+
+  private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
     const ks = this._player.config.provider.ks;
     const serviceUrl = this._player.config.provider.env.serviceUrl;
@@ -131,23 +141,34 @@ export class LiveProvider extends Provider {
       assetUrl: makeAssetUrl(serviceUrl, newThumb.assetId, ks)
     };
     this._thumbCuePoints.push(newThumbCue);
-    this._thumbCuePoints = this._thumbCuePoints
-      .sort((a, b) => {
-        return a.createdAt - b.createdAt;
-      })
-      .map((cue, index) => {
-        // fix endTime and replace VTTCue
-        if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== this._thumbCuePoints.length - 1) {
-          const fixedCue = {...cue, endTime: this._thumbCuePoints[index + 1].startTime};
-          this._player.cuePointManager.addCuePoints([fixedCue]);
-        }
-        return cue;
-      });
+    this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
     this._player.cuePointManager.addCuePoints([newThumbCue]);
   };
 
+  private _prepareViewChangeCuePoints = (viewChange: SlideViewChangePushNotificationData) => {
+    const startTime = this._player.currentTime - (this._currentTimeLive - viewChange.createdAt);
+    try {
+      const partnerData = JSON.parse(viewChange.partnerData);
+      const newViewChangeCue = {
+        ...viewChange,
+        startTime: Number(startTime.toFixed(2)),
+        endTime: Number.MAX_SAFE_INTEGER,
+        partnerData
+      };
+      this._slideViewChangeCuePoints.push(newViewChangeCue);
+      this._slideViewChangeCuePoints = this._fixCuePointEndTime(this._slideViewChangeCuePoints);
+      this._player.cuePointManager.addCuePoints([newViewChangeCue]);
+    } catch (e) {
+      this._logger.error('Unnable parse slide-view change cue-point');
+    }
+  };
+
   private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
-    thumbs.forEach(thumb => this._prepareThumbCuePoints(thumb));
+    thumbs.forEach(thumb => this._prepareCuePoints(thumb, this._prepareThumbCuePoints));
+  };
+
+  private _handleSlideViewChangeNotificationData = ({slideViewChanges}: SlideViewChangeNotificationsEvent) => {
+    slideViewChanges.forEach(viewChange => this._prepareCuePoints(viewChange, this._prepareViewChangeCuePoints));
   };
 
   private _handlePublicNotificationsData(data: PublicNotificationsEvent) {

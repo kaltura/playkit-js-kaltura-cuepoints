@@ -23,6 +23,7 @@ export interface ThumbPushNotificationData extends PushNotificationData {
 }
 
 export interface SlideViewChangePushNotificationData extends PushNotificationData {
+  endTime?: number;
   duration: number;
   code: string;
 }
