@@ -171,10 +171,11 @@ export class LiveProvider extends Provider {
     slideViewChanges.forEach(viewChange => this._prepareCuePoints(viewChange, this._prepareViewChangeCuePoints));
   };
 
-  private _handlePublicNotificationsData(data: PublicNotificationsEvent) {
-    console.log('>> handlePublicNotificationsData', data);
-    // TODO: prepare data and push to cue-point manager
-  }
+  // Placeholder for AOA cue-points
+  // private _handlePublicNotificationsData(data: PublicNotificationsEvent) {
+  //   console.log('>> handlePublicNotificationsData', data);
+  //   // TODO: prepare data and push to cue-point manager
+  // }
 
   private _handlePushNotificationsErrorData(data: NotificationsErrorEvent) {
     this._logger.error('Got an error from push notification server');
@@ -184,24 +185,31 @@ export class LiveProvider extends Provider {
     this._pushNotification.on(PushNotificationEventTypes.PushNotificationsError, this._handlePushNotificationsErrorData);
 
     if (this._types.has(KalturaCuePointType.SLIDE)) {
-      this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
       this._pushNotification.on(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
-    if (this._types.has(KalturaCuePointType.AOA)) {
-      this._pushNotification.on(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
+
+    if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
+      this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
     }
+    // Placeholder for AOA cue-points
+    // if (this._types.has(KalturaCuePointType.AOA)) {
+    //   this._pushNotification.on(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
+    // }
   }
 
   private _removePushNotificationListener(): void {
     this._pushNotification.off(PushNotificationEventTypes.PushNotificationsError, this._handlePushNotificationsErrorData);
 
     if (this._types.has(KalturaCuePointType.SLIDE)) {
-      this._pushNotification.off(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
       this._pushNotification.off(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
-    if (this._types.has(KalturaCuePointType.AOA)) {
-      this._pushNotification.off(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
+    if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
+      this._pushNotification.off(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
     }
+    // Placeholder for AOA cue-points
+    // if (this._types.has(KalturaCuePointType.AOA)) {
+    //   this._pushNotification.off(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
+    // }
   }
 
   destroy() {

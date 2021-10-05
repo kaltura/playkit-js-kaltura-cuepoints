@@ -99,12 +99,15 @@ export class PushNotificationPrivider {
 
     if (types.has(KalturaCuePointType.SLIDE)) {
       registrationConfigs.push(this._createThumbRegistration(entryId));
+    }
+    if (types.has(KalturaCuePointType.VIEW_CHANGE)) {
       registrationConfigs.push(this._createSlideViewChangeRegistration(entryId));
     }
 
-    if (types.has(KalturaCuePointType.AOA)) {
-      registrationConfigs.push(this._createPublicRegistration(entryId));
-    }
+    // Placeholder for AOA cue-points
+    // if (types.has(KalturaCuePointType.AOA)) {
+    //   registrationConfigs.push(this._createPublicRegistration(entryId));
+    // }
 
     this._pushServerInstance
       .registerNotifications({

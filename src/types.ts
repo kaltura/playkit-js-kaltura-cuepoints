@@ -5,8 +5,9 @@ export enum KalturaThumbCuePointSubType {
   SLIDE = 1
 }
 export enum KalturaCuePointType {
-  AOA = 'aoa',
+  // AOA = 'aoa',
   SLIDE = 'slide',
-  HOTSPOT = 'hotspot',
-  CHAPTER = 'chapter'
+  VIEW_CHANGE = 'viewchange'
+  // HOTSPOT = 'hotspot',
+  // CHAPTER = 'chapter'
 }
