@@ -1,10 +1,11 @@
 import {Provider, ProviderRequest} from '../provider';
 import {ThumbLoader} from './thumb-loader';
-import {KalturaThumbCuePoint} from './response-types/kaltura-thumb-cue-point';
+import {KalturaThumbCuePoint} from './response-types';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
+import {makeAssetUrl} from '../utils';
 const DEFAULT_SERVICE_URL = '//cdnapisec.kaltura.com/api_v3';
 
 export class VodProvider extends Provider {
@@ -37,7 +38,7 @@ export class VodProvider extends Provider {
           }
         })
         .catch((e: any) => {
-          this._logger.warn('Provider cue points doRequest was rejected - ', e);
+          this._logger.warn('Provider cue points doRequest was rejected');
         });
     }
   }
@@ -46,7 +47,7 @@ export class VodProvider extends Provider {
     function createCuePointList(thumbCuePoints: Array<KalturaThumbCuePoint>, ks: string, serviceUrl: string) {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
-          assetUrl: `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${thumbCuePoint.assetId}/ks/${ks}`,
+          assetUrl: makeAssetUrl(serviceUrl, thumbCuePoint.assetId, ks),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
           startTime: thumbCuePoint.startTime / 1000

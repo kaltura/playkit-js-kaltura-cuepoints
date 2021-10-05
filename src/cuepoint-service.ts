@@ -2,6 +2,7 @@ import Player = KalturaPlayerTypes.Player;
 import {Provider} from './providers/provider';
 import {VodProvider} from './providers/vod/vod-provider';
 import {LiveProvider} from './providers/live/live-provider';
+import {KalturaCuePoint} from './providers/vod/response-types';
 import {CuepointTypeMap, KalturaCuePointType, KalturaThumbCuePointSubType} from './types';
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -16,6 +17,14 @@ export class CuepointService {
 
   public get CuepointType() {
     return KalturaCuePointType;
+  }
+
+  public get KalturaThumbCuePointSubType() {
+    return KalturaThumbCuePointSubType;
+  }
+
+  public get KalturaCuePointType() {
+    return KalturaCuePoint.KalturaCuePointType;
   }
 
   constructor(player: Player, eventManager: EventManager, logger: any) {

@@ -1,7 +1,7 @@
 import {APIResponse, ClientApi, isAPIErrorResponse, RegisterRequestResponse} from './client-api';
 import {RegisterRequestParams} from './push-notification-loader';
 import {SocketWrapper} from './socket-wrapper';
-import {getDomainFromUrl} from './utils';
+import {getDomainFromUrl} from '../utils';
 
 export interface EventParams extends Record<string, any> {
   entryId: string;

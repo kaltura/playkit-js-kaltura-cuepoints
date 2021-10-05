@@ -1,17 +1,17 @@
 import {EventsManager} from './events-manager';
 import {PrepareRegisterRequestConfig, PushNotifications} from './push-notifications';
-import {CuepointTypeMap, CuepointType} from '../../types';
+import {CuepointTypeMap, KalturaCuePointType} from '../../types';
 
 export interface PushNotificationData {
-  cuePointType: string; // "codeCuePoint.Code", "thumbCuePoint.Thumb"
+  cuePointType: string;
   entryId: string;
   id: string;
-  objectType: string; // "KalturaCodeCuePoint", "KalturaThumbCuePoint"
+  objectType: string;
   partnerData: string;
   partnerId: number;
   startTime: number;
-  status: number; // 1
-  tags: string; // "change-view-mode", "select-a-thumb"
+  status: number;
+  tags: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -97,12 +97,12 @@ export class PushNotificationPrivider {
     // notification objects
     const registrationConfigs = [];
 
-    if (types.has(CuepointType.SLIDE)) {
+    if (types.has(KalturaCuePointType.SLIDE)) {
       registrationConfigs.push(this._createThumbRegistration(entryId));
       registrationConfigs.push(this._createSlideViewChangeRegistration(entryId));
     }
 
-    if (types.has(CuepointType.AOA)) {
+    if (types.has(KalturaCuePointType.AOA)) {
       registrationConfigs.push(this._createPublicRegistration(entryId));
     }
 

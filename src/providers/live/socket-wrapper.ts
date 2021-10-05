@@ -1,6 +1,6 @@
 import * as io from 'socket.io-client';
 import Socket = SocketIOClient.Socket;
-import {Utils} from './utils';
+import {isEmptyObject} from '../utils';
 
 export interface ListenKeysObject {
   eventName: string;
@@ -78,7 +78,7 @@ export class SocketWrapper {
 
     this._socket.on('disconnect', (e: any) => {
       this._logger.info('push server was disconnected');
-      if (!Utils.isEmptyObject(this._listenKeys)) {
+      if (!isEmptyObject(this._listenKeys)) {
         const onSocketDisconnect = socketWrapperParams.onSocketDisconnect;
         if (onSocketDisconnect) onSocketDisconnect(e);
       }
@@ -86,7 +86,7 @@ export class SocketWrapper {
 
     this._socket.on('reconnect', (e: any) => {
       this._logger.info('push server was reconnected');
-      if (!Utils.isEmptyObject(this._listenKeys)) {
+      if (!isEmptyObject(this._listenKeys)) {
         const onSocketReconnect = socketWrapperParams.onSocketReconnect;
         if (onSocketReconnect) onSocketReconnect(e);
       }

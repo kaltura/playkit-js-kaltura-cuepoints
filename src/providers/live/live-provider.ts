@@ -1,5 +1,5 @@
 import {Provider} from '../provider';
-import {CuepointType, CuepointTypeMap} from '../../types';
+import {KalturaCuePointType, CuepointTypeMap} from '../../types';
 import {
   PushNotificationPrivider,
   PushNotificationEventTypes,
@@ -10,7 +10,7 @@ import {
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
 } from './push-notifications-provider';
-import {makeAssetUrl} from './utils';
+import {makeAssetUrl} from '../utils';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -183,11 +183,11 @@ export class LiveProvider extends Provider {
   private _constructPushNotificationListener(): void {
     this._pushNotification.on(PushNotificationEventTypes.PushNotificationsError, this._handlePushNotificationsErrorData);
 
-    if (this._types.has(CuepointType.SLIDE)) {
+    if (this._types.has(KalturaCuePointType.SLIDE)) {
       this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
       this._pushNotification.on(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
-    if (this._types.has(CuepointType.AOA)) {
+    if (this._types.has(KalturaCuePointType.AOA)) {
       this._pushNotification.on(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
     }
   }
@@ -195,11 +195,11 @@ export class LiveProvider extends Provider {
   private _removePushNotificationListener(): void {
     this._pushNotification.off(PushNotificationEventTypes.PushNotificationsError, this._handlePushNotificationsErrorData);
 
-    if (this._types.has(CuepointType.SLIDE)) {
+    if (this._types.has(KalturaCuePointType.SLIDE)) {
       this._pushNotification.off(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
       this._pushNotification.off(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
-    if (this._types.has(CuepointType.AOA)) {
+    if (this._types.has(KalturaCuePointType.AOA)) {
       this._pushNotification.off(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
     }
   }
