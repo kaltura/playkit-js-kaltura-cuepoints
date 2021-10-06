@@ -15,8 +15,6 @@ import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 
-const ID3_TAG_LABEL = 'id3';
-
 export class LiveProvider extends Provider {
   private _pushNotification: PushNotificationPrivider;
   private _thumbCuePoints: ThumbPushNotificationData[] = [];
@@ -47,7 +45,9 @@ export class LiveProvider extends Provider {
 
   private _onTimedMetadataLoaded = ({payload}: any): void => {
     // TODO: handle dash format
-    const id3TagCues = payload.label === ID3_TAG_LABEL ? payload.cues : [];
+    const id3TagCues = payload.cues.filter(
+      (cue: any) => cue.value && cue.value.key === 'TEXT'
+    );
     if (id3TagCues.length) {
       try {
         const id3Timestamp = Math.ceil(JSON.parse(id3TagCues[id3TagCues.length - 1].value.data).timestamp / 1000);
