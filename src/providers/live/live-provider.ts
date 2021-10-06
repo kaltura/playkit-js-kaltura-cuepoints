@@ -5,7 +5,7 @@ import {
   PushNotificationEventTypes,
   SlideViewChangeNotificationsEvent,
   ThumbNotificationsEvent,
-  PublicNotificationsEvent,
+  // PublicNotificationsEvent,
   NotificationsErrorEvent,
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
@@ -184,7 +184,6 @@ export class LiveProvider extends Provider {
     if (this._types.has(KalturaCuePointType.SLIDE)) {
       this._pushNotification.on(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
-
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
       this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
     }
