@@ -6,7 +6,6 @@ import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 import {makeAssetUrl} from '../utils';
-const DEFAULT_SERVICE_URL = '//cdnapisec.kaltura.com/api_v3';
 
 export class VodProvider extends Provider {
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
@@ -76,10 +75,8 @@ export class VodProvider extends Provider {
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
-    const ks = this._player.config.session.ks || '';
-    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
     if (thumbCuePoints.length) {
-      let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
+      let cuePoints = createCuePointList(thumbCuePoints, this._ks, this._serviceUrl);
       cuePoints = sortCuepoints(cuePoints);
       cuePoints = fixCuePointsEndTime(cuePoints);
       this._player.cuePointManager.addCuePoints(cuePoints);

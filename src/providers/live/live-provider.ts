@@ -43,7 +43,6 @@ export class LiveProvider extends Provider {
     if (id3TagCues.length) {
       try {
         const id3Timestamp = Math.ceil(JSON.parse(id3TagCues[id3TagCues.length - 1].value.data).timestamp / 1000);
-        this._logger.debug(`Received new id3 timestamp: ${id3Timestamp}`);
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
         }
@@ -132,13 +131,11 @@ export class LiveProvider extends Provider {
 
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
-    const ks = this._player.config.provider.ks;
-    const serviceUrl = this._player.config.provider.env.serviceUrl;
     const newThumbCue = {
       ...newThumb,
       startTime: Number(startTime.toFixed(2)),
       endTime: Number.MAX_SAFE_INTEGER,
-      assetUrl: makeAssetUrl(serviceUrl, newThumb.assetId, ks)
+      assetUrl: makeAssetUrl(this._serviceUrl, newThumb.assetId, this._ks)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);

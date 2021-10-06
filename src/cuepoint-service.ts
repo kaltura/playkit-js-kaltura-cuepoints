@@ -56,7 +56,6 @@ export class CuepointService {
 
     if (this._types.size == 0) {
       this._logger.warn('Cue points provider was not initialized because there are no registered types');
-
       return;
     }
 
@@ -65,7 +64,7 @@ export class CuepointService {
     } else {
       this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types);
     }
-  }
+  } 
 
   public reset(): void {
     this._mediaLoaded = false;
