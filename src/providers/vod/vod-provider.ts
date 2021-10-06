@@ -1,4 +1,4 @@
-import {Provider, ProviderRequest} from '../provider';
+import {Provider, ProviderRequest, DEFAULT_SERVICE_URL} from '../provider';
 import {ThumbLoader} from './thumb-loader';
 import {KalturaThumbCuePoint} from './response-types';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
@@ -75,8 +75,10 @@ export class VodProvider extends Provider {
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData response successful with ${thumbCuePoints.length} cue points`);
+    const ks = this._player.config.session.ks || '';
+    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
     if (thumbCuePoints.length) {
-      let cuePoints = createCuePointList(thumbCuePoints, this._ks, this._serviceUrl);
+      let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
       cuePoints = sortCuepoints(cuePoints);
       cuePoints = fixCuePointsEndTime(cuePoints);
       this._player.cuePointManager.addCuePoints(cuePoints);

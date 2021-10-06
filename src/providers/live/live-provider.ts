@@ -1,11 +1,10 @@
-import {Provider} from '../provider';
+import {Provider, DEFAULT_SERVICE_URL} from '../provider';
 import {KalturaCuePointType, CuepointTypeMap} from '../../types';
 import {
   PushNotificationPrivider,
   PushNotificationEventTypes,
   SlideViewChangeNotificationsEvent,
   ThumbNotificationsEvent,
-  // PublicNotificationsEvent,
   NotificationsErrorEvent,
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
@@ -45,9 +44,7 @@ export class LiveProvider extends Provider {
 
   private _onTimedMetadataLoaded = ({payload}: any): void => {
     // TODO: handle dash format
-    const id3TagCues = payload.cues.filter(
-      (cue: any) => cue.value && cue.value.key === 'TEXT'
-    );
+    const id3TagCues = payload.cues.filter((cue: any) => cue.value && cue.value.key === 'TEXT');
     if (id3TagCues.length) {
       try {
         const id3Timestamp = Math.ceil(JSON.parse(id3TagCues[id3TagCues.length - 1].value.data).timestamp / 1000);
@@ -82,7 +79,9 @@ export class LiveProvider extends Provider {
       // update _currentTimeLive between id3Tags
       this._currentTimeLive++;
     }
-    this._currentTimeLiveResolvePromise();
+    if (this._id3Timestamp) {
+      this._currentTimeLiveResolvePromise();
+    }
 
     this._id3Timestamp = null;
     this._seekDifference = null;
@@ -123,11 +122,13 @@ export class LiveProvider extends Provider {
 
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
+    const ks = this._player.config.session?.ks || '';
+    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
     const newThumbCue = {
       ...newThumb,
       startTime: Number(startTime.toFixed(2)),
       endTime: Number.MAX_SAFE_INTEGER,
-      assetUrl: makeAssetUrl(this._serviceUrl, newThumb.assetId, this._ks)
+      assetUrl: makeAssetUrl(serviceUrl, newThumb.assetId, ks)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
