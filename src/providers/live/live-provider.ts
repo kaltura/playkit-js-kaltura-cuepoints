@@ -1,4 +1,4 @@
-import {Provider, DEFAULT_SERVICE_URL} from '../provider';
+import {Provider} from '../provider';
 import {KalturaCuePointType, CuepointTypeMap} from '../../types';
 import {
   PushNotificationPrivider,
@@ -122,13 +122,11 @@ export class LiveProvider extends Provider {
 
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
-    const ks = this._player.config.session?.ks || '';
-    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
     const newThumbCue = {
       ...newThumb,
       startTime: Number(startTime.toFixed(2)),
       endTime: Number.MAX_SAFE_INTEGER,
-      assetUrl: makeAssetUrl(serviceUrl, newThumb.assetId, ks)
+      assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);

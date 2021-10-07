@@ -3,8 +3,6 @@ import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 import ILoader = KalturaPlayerTypes.ILoader;
 
-export const DEFAULT_SERVICE_URL = '//cdnapisec.kaltura.com/api_v3';
-
 export interface ProviderRequest {
   loader: Function;
   params: any;
