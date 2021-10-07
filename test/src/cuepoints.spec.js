@@ -1,21 +1,18 @@
-import {setup} from 'kaltura-player-js';
+import {setup, core} from 'kaltura-player-js';
 import * as TestUtils from './utils/test-utils';
-import {core} from 'kaltura-player-js';
 import {Cuepoints} from '../../src';
-const {EventType, FakeEvent, Cue} = core;
 
 describe('Cue points plugin', function () {
   let player, sandbox;
   const target = 'player-placeholder';
-  const sourcesConfig = {
-    sources: {
-      progressive: [
-        {
-          mimetype: 'video/mp4',
-          url: 'https://www.w3schools.com/tags/movie.mp4'
-        }
-      ]
-    }
+  const sources = {
+    progressive: [
+      {
+        mimetype: 'video/mp4',
+        url: 'https://www.w3schools.com/tags/movie.mp4',
+        id: '1_rwbj3j0a_11311,applehttp'
+      }
+    ]
   };
 
   before(() => {
@@ -23,6 +20,18 @@ describe('Cue points plugin', function () {
     const el = document.getElementById(target);
     el.style.height = '360px';
     el.style.width = '640px';
+  });
+  afterEach(() => {
+    sandbox.restore();
+    if (player.hasService('kalturaCuepoints')) {
+      player.getService('kalturaCuepoints').reset();
+    }
+    player.destroy();
+    player = null;
+    TestUtils.removeVideoElementsFromTestPage();
+  });
+  after(() => {
+    TestUtils.removeElement(target);
   });
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -34,53 +43,26 @@ describe('Cue points plugin', function () {
       }
     });
   });
-  afterEach(() => {
-    sandbox.restore();
-    if (player.hasService('kalturaCuepoints')) {
-      player.getService('kalturaCuepoints').reset();
-    }
-    player.destroy();
-    player = null;
-    TestUtils.removeVideoElementsFromTestPage();
-  });
 
-  after(() => {
-    TestUtils.removeElement(target);
-  });
-
-  describe('Cue points', () => {
-    it('should check cuepoint service has been registered in KP as service', done => {
-      if (player.hasService('kalturaCuepoints')) {
-        done();
-      }
-    });
-
-    it('should try and register to get "slides" cue points', done => {
-      const cps = player.getService('kalturaCuepoints');
-      cps.registerTypes([cps.CuepointType.Slides]);
-      expect(cps._types.get(cps.CuepointType.Slides)).to.eql(true);
-      done();
+  describe('Check cue-point service', () => {
+    it('should check cuepoint service has been registered in KP as service', () => {
+      expect(player.hasService('kalturaCuepoints')).to.eql(true);
     });
 
     it('should try and fail to register to get "slides" cue points after change source ended', done => {
-      const cps = player.getService('kalturaCuepoints');
-      player.configure(sourcesConfig);
-      cps.registerTypes([cps.CuepointType.Slides]);
-      expect(cps._types.get(cps.CuepointType.Slides)).to.not.eql(true);
-      done();
+      player.addEventListener(player.Event.CHANGE_SOURCE_ENDED, () => {
+        const cps = player.getService('kalturaCuepoints');
+        cps.registerTypes([cps.CuepointType.SLIDE]);
+        expect(cps._types.get(cps.CuepointType.SLIDE)).to.not.eql(true);
+        done();
+      });
+      player.configure({sources});
     });
 
-    it('should reset the service', done => {
+    it('should try and register to get "slides" cue points', () => {
       const cps = player.getService('kalturaCuepoints');
-      cps.registerTypes([cps.CuepointType.Slides]);
-      player.configure(sourcesConfig);
-      let providerDestroy = sandbox.spy(cps._provider, 'destroy');
-
-      cps.reset();
-      expect(cps._types.size).to.eql(0);
-      expect(cps._mediaLoaded).to.eql(false);
-      providerDestroy.should.have.been.calledOnce;
-      done();
+      cps.registerTypes([cps.CuepointType.SLIDE]);
+      expect(cps._types.get(cps.CuepointType.SLIDE)).to.eql(true);
     });
   });
 });

@@ -2,26 +2,16 @@ import Player = KalturaPlayerTypes.Player;
 import {Provider} from './providers/provider';
 import {VodProvider} from './providers/vod/vod-provider';
 import {LiveProvider} from './providers/live/live-provider';
+import {KalturaCuePoint} from './providers/vod/response-types';
+import {CuepointTypeMap, KalturaCuePointType, KalturaThumbCuePointSubType} from './types';
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 
-export enum KalturaThumbCuePointSubType {
-  CHAPTER = 2,
-  SLIDE = 1
-}
-export enum KalturaCuePointType {
-  // All: 'All',
-  // AnswersOnAir: 'AnswersOnAir',
-  // Chapters: 'Chapters',
-  SLIDE = 'slide'
-  // Hotspots: 'Hotspots',
-  // Captions: 'Captions'
-}
-
 export class CuepointService {
-  private _types: Map<string, boolean> = new Map();
+  private _types: CuepointTypeMap = new Map();
   private _provider: Provider | undefined;
   private _player: Player;
+  private _eventManager: EventManager;
   private _logger: Logger;
   private _mediaLoaded: boolean = false;
 
@@ -29,9 +19,18 @@ export class CuepointService {
     return KalturaCuePointType;
   }
 
+  public get KalturaThumbCuePointSubType() {
+    return KalturaThumbCuePointSubType;
+  }
+
+  public get KalturaCuePointType() {
+    return KalturaCuePoint.KalturaCuePointType;
+  }
+
   constructor(player: Player, eventManager: EventManager, logger: any) {
     this._logger = logger;
     this._player = player;
+    this._eventManager = eventManager;
     eventManager.listen(this._player, this._player.Event.CHANGE_SOURCE_ENDED, () => {
       this._initProvider();
     });
@@ -57,16 +56,15 @@ export class CuepointService {
 
     if (this._types.size == 0) {
       this._logger.warn('Cue points provider was not initialized because there are no registered types');
-
       return;
     }
 
     if (this._player.isLive()) {
-      this._provider = new LiveProvider(this._player, this._logger, this._types);
+      this._provider = new LiveProvider(this._player, this._eventManager, this._logger, this._types);
     } else {
-      this._provider = new VodProvider(this._player, this._logger, this._types);
+      this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types);
     }
-  }
+  } 
 
   public reset(): void {
     this._mediaLoaded = false;

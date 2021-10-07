@@ -1,6 +1,5 @@
 import ILoader = KalturaPlayerTypes.ILoader;
-import {KalturaCuePointListResponse} from './response-types/kaltura-cue-point-list-response';
-import {KalturaThumbCuePoint} from './response-types/kaltura-thumb-cue-point';
+import {KalturaCuePointListResponse, KalturaThumbCuePoint, KalturaCuePoint} from './response-types';
 
 const {RequestBuilder} = KalturaPlayer.providers;
 interface KalturaCuePointsResponse {
@@ -30,7 +29,7 @@ export class ThumbLoader implements ILoader {
     request.params = {
       filter: {
         entryIdEqual: this._entryId,
-        cuePointTypeEqual: 'thumbCuePoint.Thumb',
+        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.THUMB,
         subTypeIn: params.subTypesFilter
       },
       responseProfile: {
