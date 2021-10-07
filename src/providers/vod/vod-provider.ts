@@ -8,7 +8,6 @@ import EventManager = KalturaPlayerTypes.EventManager;
 import {makeAssetUrl} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
-const DEFAULT_SERVICE_URL = '//cdnapisec.kaltura.com/api_v3';
 
 export class VodProvider extends Provider {
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
@@ -53,6 +52,24 @@ export class VodProvider extends Provider {
     }
   }
 
+  private _sortCuepoints<T>(cuePoints: T[]) {
+    return cuePoints.sort(function (a: any, b: any) {
+      return a.startTime - b.startTime;
+    });
+  }
+
+  private _fixCuePointsEndTime<T extends {startTime: number, endTime: number}>(cuePoints: T[]) {
+    return cuePoints.map((cuePoint: any, index: number) => {
+      if (!cuePoint.endTime) {
+        return {
+          ...cuePoint,
+          endTime: index === cuePoints.length - 1 ? Number.MAX_SAFE_INTEGER : cuePoints[index + 1].startTime
+        };
+      }
+      return cuePoint;
+    });
+  }
+
   private _handleViewChangeResponse(data: Map<string, any>) {
     function createCuePointList(viewChangeCuePoints: Array<KalturaCodeCuePoint>) {
       return viewChangeCuePoints.map((viewChangeCuePoint: KalturaCodeCuePoint) => {
@@ -72,11 +89,11 @@ export class VodProvider extends Provider {
     if (changeCuePoints.length) {
       let cuePoints = createCuePointList(changeCuePoints);
       let lockedCuePoints = cuePoints.filter((cuepoint: any) => cuepoint.partnerData?.viewModeLockState);
-      lockedCuePoints = this._sortCuePoints(lockedCuePoints);
+      lockedCuePoints = this._sortCuepoints(lockedCuePoints);
       lockedCuePoints = this._fixCuePointsEndTime(lockedCuePoints);
 
       let viewChangeCuePoints = cuePoints.filter((cuepoint: any) => !cuepoint.partnerData?.viewModeLockState);
-      viewChangeCuePoints = this._sortCuePoints(viewChangeCuePoints);
+      viewChangeCuePoints = this._sortCuepoints(viewChangeCuePoints);
       viewChangeCuePoints = this._fixCuePointsEndTime(viewChangeCuePoints);
 
       this._player.cuePointManager.addCuePoints(viewChangeCuePoints);
@@ -84,25 +101,10 @@ export class VodProvider extends Provider {
     }
   }
 
-  private _sortCuePoints<T extends {startTime: number}>(cuePoints: T[]) {
-    return cuePoints.sort(function (a: any, b: any) {
-      return a.startTime - b.startTime;
-    });
-  }
-
-  private _fixCuePointsEndTime<T extends {startTime: number, endTime: number}>(cuePoints: T[]) {
-    return cuePoints.map((cuePoint: any, index: number) => {
-      if (!cuePoint.endTime) {
-        return {
-          ...cuePoint,
-          endTime: index === cuePoints.length - 1 ? Number.MAX_SAFE_INTEGER : cuePoints[index + 1].startTime
-        };
-      }
-      return cuePoint;
-    });
-  }
   private _handleThumbResponse(data: Map<string, any>) {
-    function createCuePointList(thumbCuePoints: Array<KalturaThumbCuePoint>, ks: string, serviceUrl: string) {
+    const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>) => {
+      const ks = this._player.config.session.ks || '';
+      const serviceUrl = this._player.config.provider.env?.serviceUrl;
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
           assetUrl: makeAssetUrl(serviceUrl, thumbCuePoint.assetId, ks),
@@ -116,11 +118,9 @@ export class VodProvider extends Provider {
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData thumb response successful with ${thumbCuePoints.length} cue points`);
-    const ks = this._player.config.session.ks || '';
-    const serviceUrl = this._player.config.provider.env?.serviceUrl || DEFAULT_SERVICE_URL;
     if (thumbCuePoints.length) {
-      let cuePoints = createCuePointList(thumbCuePoints, ks, serviceUrl);
-      cuePoints = this._sortCuePoints(cuePoints);
+      let cuePoints = createCuePointList(thumbCuePoints);
+      cuePoints = this._sortCuepoints(cuePoints);
       cuePoints = this._fixCuePointsEndTime(cuePoints);
       this._player.cuePointManager.addCuePoints(cuePoints);
     }

@@ -4,8 +4,8 @@ import EventManager = KalturaPlayerTypes.EventManager;
 import ILoader = KalturaPlayerTypes.ILoader;
 
 export interface ProviderRequest {
-  loader: Function,
-  params: any
+  loader: Function;
+  params: any;
 }
 export class Provider {
   protected _types: Map<string, boolean>;

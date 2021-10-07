@@ -1,5 +1,4 @@
-import {APIResponse, ClientApi, isAPIErrorResponse, RegisterRequestResponse} from './client-api';
-import {RegisterRequestParams} from './push-notification-loader';
+import {RegisterRequestParams, PushNotificationLoader} from './push-notification-loader';
 import {SocketWrapper} from './socket-wrapper';
 import {getDomainFromUrl} from '../utils';
 
@@ -26,16 +25,44 @@ export interface APINotificationResponse extends APIResponse {
   queueKey: string;
 }
 
+export interface APIResponse {
+  objectType: string;
+}
+
+export interface RegisterRequestResponse extends APIResponse {
+  queueKey: string;
+  queueName: string;
+  url: string;
+}
+
+export interface APIErrorResponse extends RegisterRequestResponse {
+  objectType: string;
+  code: string;
+  message: string;
+}
+
+export interface ClientApiOptions {
+  ks: string;
+  serviceUrl: string;
+  clientTag: string;
+}
+
 export function isAPINotificationResponse(response: APIResponse): response is APINotificationResponse {
   return response.objectType === 'KalturaPushNotificationData';
 }
 
-export class PushNotifications {
-  private _socketPool: any = {};
-  private _clientApi: any;
+export function isAPIErrorResponse(response: RegisterRequestResponse): response is APIErrorResponse {
+  return response.objectType === 'KalturaAPIException';
+}
 
-  constructor(private _player: KalturaPlayerTypes.Player, private _logger: KalturaPlayerTypes.Logger) {
-    this._clientApi = new ClientApi(_player, _logger);
+export class PushNotifications {
+  private _player: KalturaPlayerTypes.Player;
+  private _logger: KalturaPlayerTypes.Logger;
+  private _socketPool: any = {};
+
+  constructor(player: KalturaPlayerTypes.Player, logger: KalturaPlayerTypes.Logger) {
+    this._player = player;
+    this._logger = logger;
     this._onPlayerReset();
   }
 
@@ -59,20 +86,28 @@ export class PushNotifications {
       }
     );
 
-    return this._clientApi.doMultiRegisterRequest(apiRequests).then((results: RegisterRequestResponse[]) => {
-      const promiseArray = results.map((result, index) => {
-        return this._processResult(
-          registerNotifications.prepareRegisterRequestConfigs[index],
-          result,
-          registerNotifications.onSocketDisconnect,
-          registerNotifications.onSocketReconnect
-        );
-      });
+    return this._player.provider
+      .doRequest([{loader: PushNotificationLoader, params: apiRequests}])
+      .then((data: Map<string, any>) => {
+        if (data && data.has(PushNotificationLoader.id)) {
+          const response = data.get(PushNotificationLoader.id)?.response as RegisterRequestResponse[];
+          const promiseArray = response.map((result, index) => {
+            return this._processResult(
+              registerNotifications.prepareRegisterRequestConfigs[index],
+              result,
+              registerNotifications.onSocketDisconnect,
+              registerNotifications.onSocketReconnect
+            );
+          });
 
-      return Promise.all(promiseArray).then(() => {
-        return;
+          return Promise.all(promiseArray).then(() => {
+            return;
+          });
+        }
+      })
+      .catch((e: any) => {
+        this._logger.warn('Error: failed to multirequest of register requests - ', e);
       });
-    });
   }
 
   private _prepareRegisterRequest(prepareRegisterRequestConfig: PrepareRegisterRequestConfig): RegisterRequestParams {

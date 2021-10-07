@@ -5,7 +5,6 @@ import {
   PushNotificationEventTypes,
   SlideViewChangeNotificationsEvent,
   ThumbNotificationsEvent,
-  PublicNotificationsEvent,
   NotificationsErrorEvent,
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
@@ -14,9 +13,6 @@ import {makeAssetUrl} from '../utils';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-
-const ID3_TAG_WAIT_TIMEOUT = 500;
-const ID3_TAG_LABEL = 'id3';
 
 export class LiveProvider extends Provider {
   private _pushNotification: PushNotificationPrivider;
@@ -27,23 +23,31 @@ export class LiveProvider extends Provider {
   private _currentTime = 0;
   private _currentTimeLive = 0;
   private _seekDifference: number | null = 0;
-  private _id3TagWaitTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
+  private _currentTimeLiveResolvePromise = () => {};
+  private _currentTimeLivePromise: Promise<void>;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
     this._pushNotification = new PushNotificationPrivider(this._player, this._logger);
-    this._initNotification();
+    this._currentTimeLivePromise = this._makeCurrentTimeLiveReadyPromise();
+    this._pushNotification.init();
+    this._constructPushNotificationListener();
     this._pushNotification.registerToPushServer(this._player.getMediaInfo().entryId, types, this._handleConnection, this._handleConnectionError);
     this._addBindings();
   }
 
+  private _makeCurrentTimeLiveReadyPromise = () => {
+    return new Promise<void>(res => {
+      this._currentTimeLiveResolvePromise = res;
+    });
+  };
+
   private _onTimedMetadataLoaded = ({payload}: any): void => {
     // TODO: handle dash format
-    const id3TagCues = payload.label === ID3_TAG_LABEL ? payload.cues : [];
+    const id3TagCues = payload.cues.filter((cue: any) => cue.value && cue.value.key === 'TEXT');
     if (id3TagCues.length) {
       try {
         const id3Timestamp = Math.ceil(JSON.parse(id3TagCues[id3TagCues.length - 1].value.data).timestamp / 1000);
-        this._logger.debug(`Received new id3 timestamp: ${id3Timestamp}`);
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
         }
@@ -75,6 +79,9 @@ export class LiveProvider extends Provider {
       // update _currentTimeLive between id3Tags
       this._currentTimeLive++;
     }
+    if (this._id3Timestamp) {
+      this._currentTimeLiveResolvePromise();
+    }
 
     this._id3Timestamp = null;
     this._seekDifference = null;
@@ -98,23 +105,6 @@ export class LiveProvider extends Provider {
     this._logger.error('Got an error during connection to push server');
   };
 
-  private _initNotification(): void {
-    this._pushNotification.init();
-    this._constructPushNotificationListener();
-  }
-
-  private _prepareCuePoints<T extends ThumbPushNotificationData | SlideViewChangePushNotificationData>(cuePoint: T, cb: (cuePoint: T) => void) {
-    if (!this._player.currentTime) {
-      this._id3TagWaitTimeouts[cuePoint.id] = setTimeout(() => {
-        // wait till id3 tag handled
-        cb(cuePoint);
-      }, ID3_TAG_WAIT_TIMEOUT);
-      return;
-    }
-    delete this._id3TagWaitTimeouts[cuePoint.id];
-    cb(cuePoint);
-  }
-
   private _fixCuePointEndTime<T extends ThumbPushNotificationData | SlideViewChangePushNotificationData>(cuePoints: T[]) {
     return cuePoints
       .sort((a, b) => {
@@ -132,13 +122,11 @@ export class LiveProvider extends Provider {
 
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
-    const ks = this._player.config.provider.ks;
-    const serviceUrl = this._player.config.provider.env.serviceUrl;
     const newThumbCue = {
       ...newThumb,
       startTime: Number(startTime.toFixed(2)),
       endTime: Number.MAX_SAFE_INTEGER,
-      assetUrl: makeAssetUrl(serviceUrl, newThumb.assetId, ks)
+      assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
@@ -164,11 +152,15 @@ export class LiveProvider extends Provider {
   };
 
   private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
-    thumbs.forEach(thumb => this._prepareCuePoints(thumb, this._prepareThumbCuePoints));
+    this._currentTimeLivePromise.then(() => {
+      thumbs.forEach(thumb => this._prepareThumbCuePoints(thumb));
+    });
   };
 
   private _handleSlideViewChangeNotificationData = ({slideViewChanges}: SlideViewChangeNotificationsEvent) => {
-    slideViewChanges.forEach(viewChange => this._prepareCuePoints(viewChange, this._prepareViewChangeCuePoints));
+    this._currentTimeLivePromise.then(() => {
+      slideViewChanges.forEach(viewChange => this._prepareViewChangeCuePoints(viewChange));
+    });
   };
 
   // Placeholder for AOA cue-points
@@ -178,7 +170,7 @@ export class LiveProvider extends Provider {
   // }
 
   private _handlePushNotificationsErrorData(data: NotificationsErrorEvent) {
-    this._logger.error('Got an error from push notification server');
+    this._logger.warn('Got an error from push notification server - ', data);
   }
 
   private _constructPushNotificationListener(): void {
@@ -187,7 +179,6 @@ export class LiveProvider extends Provider {
     if (this._types.has(KalturaCuePointType.SLIDE)) {
       this._pushNotification.on(PushNotificationEventTypes.ThumbNotification, this._handleThumbNotificationData);
     }
-
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
       this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
     }
@@ -215,8 +206,6 @@ export class LiveProvider extends Provider {
   destroy() {
     this._pushNotification.reset();
     this._removePushNotificationListener();
-    for (const timeout in this._id3TagWaitTimeouts) {
-      clearTimeout(this._id3TagWaitTimeouts[timeout]);
-    }
+    this._currentTimeLivePromise = this._makeCurrentTimeLiveReadyPromise();
   }
 }
