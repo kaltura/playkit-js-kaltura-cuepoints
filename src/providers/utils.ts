@@ -9,5 +9,5 @@ export function getDomainFromUrl(url: string) {
 }
 
 export function makeAssetUrl(serviceUrl: string = DEFAULT_SERVICE_URL, assetId: string, ks: string = '') {
-  return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}/ks/${ks}?thumbParams:objectType=KalturaThumbParams&thumbParams:width=600`;
+  return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}/ks/${ks}`;
 }

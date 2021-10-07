@@ -170,7 +170,7 @@ export class LiveProvider extends Provider {
   // }
 
   private _handlePushNotificationsErrorData(data: NotificationsErrorEvent) {
-    this._logger.error('Got an error from push notification server');
+    this._logger.warn('Got an error from push notification server - ', data);
   }
 
   private _constructPushNotificationListener(): void {

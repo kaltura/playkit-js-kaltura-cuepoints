@@ -37,7 +37,7 @@ export class VodProvider extends Provider {
           }
         })
         .catch((e: any) => {
-          this._logger.warn('Provider cue points doRequest was rejected');
+          this._logger.warn('Provider cue points doRequest was rejected - ', e);
         });
     }
   }

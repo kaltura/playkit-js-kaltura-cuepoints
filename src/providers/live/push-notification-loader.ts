@@ -16,7 +16,7 @@ export class PushNotificationLoader implements KalturaPlayerTypes.ILoader {
   _requests: any[] = [];
   _response: any = {};
   static get id(): string {
-    return 'cuepoint-service';
+    return 'push-notification';
   }
   constructor(private _apiRequests: RegisterRequestParams[]) {
     const headers: Map<string, string> = new Map();
