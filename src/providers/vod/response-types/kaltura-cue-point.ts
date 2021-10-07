@@ -10,9 +10,9 @@ export class KalturaCuePoint {
   };
 
   static KalturaCuePointStatus: {[type: string]: number} = {
-    READY:	1,
-    DELETED:	2,
-    HANDLED:	3,
+    READY: 1,
+    DELETED: 2,
+    HANDLED: 3,
     PENDING: 4
   };
 
@@ -80,7 +80,7 @@ export class KalturaCuePoint {
    * @member - The cue point partner
    * @type {string}
    */
-  partnerData: string = "";
+  partnerData: string = '';
 
   constructor(cuePoint: any) {
     this.id = cuePoint.id;
@@ -93,10 +93,8 @@ export class KalturaCuePoint {
     this.updatedAt = cuePoint.updatedAt;
     this.triggeredAt = cuePoint.triggeredAt;
     this.startTime = cuePoint.startTime;
-    try{
+    try {
       this.partnerData = JSON.parse(cuePoint.partnerData);
-    }catch (e) {
-
-    }
+    } catch (e) {}
   }
 }

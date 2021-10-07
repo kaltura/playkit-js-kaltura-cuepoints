@@ -58,7 +58,7 @@ export class VodProvider extends Provider {
     });
   }
 
-  private _fixCuePointsEndTime<T extends {startTime: number, endTime: number}>(cuePoints: T[]) {
+  private _fixCuePointsEndTime<T extends {startTime: number; endTime: number}>(cuePoints: T[]) {
     return cuePoints.map((cuePoint: any, index: number) => {
       if (!cuePoint.endTime) {
         return {
@@ -78,7 +78,7 @@ export class VodProvider extends Provider {
           startTime: viewChangeCuePoint.startTime / 1000,
           endTime: viewChangeCuePoint.endTime,
           cuePointType: viewChangeCuePoint.cuePointType,
-          partnerData: viewChangeCuePoint.partnerData,
+          partnerData: viewChangeCuePoint.partnerData
         };
       });
     }
@@ -89,13 +89,16 @@ export class VodProvider extends Provider {
     if (changeCuePoints.length) {
       let cuePoints = createCuePointList(changeCuePoints);
 
-      let { lockedCuePoints, viewChangeCuePoints } = cuePoints.reduce<any>((prev: any, curr: any) => {
-        if (curr.partnerData?.viewModeLockState) {
-            return { lockedCuePoints: [ ...prev.lockedCuePoints, curr], viewChangeCuePoints: prev.viewChangeCuePoints }
-        } else {
-            return { lockedCuePoints: prev.lockedCuePoints, viewChangeCuePoints: [...prev.viewChangeCuePoints, curr] }
-        }
-    }, { lockedCuePoints: [], viewChangeCuePoints: [] })
+      let {lockedCuePoints, viewChangeCuePoints} = cuePoints.reduce<any>(
+        (prev: any, curr: any) => {
+          if (curr.partnerData?.viewModeLockState) {
+            return {lockedCuePoints: [...prev.lockedCuePoints, curr], viewChangeCuePoints: prev.viewChangeCuePoints};
+          } else {
+            return {lockedCuePoints: prev.lockedCuePoints, viewChangeCuePoints: [...prev.viewChangeCuePoints, curr]};
+          }
+        },
+        {lockedCuePoints: [], viewChangeCuePoints: []}
+      );
 
       lockedCuePoints = this._sortCuePoints(lockedCuePoints);
       lockedCuePoints = this._fixCuePointsEndTime(lockedCuePoints);
@@ -119,7 +122,7 @@ export class VodProvider extends Provider {
           endTime: 0
         };
       });
-    }
+    };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData thumb response successful with ${thumbCuePoints.length} cue points`);

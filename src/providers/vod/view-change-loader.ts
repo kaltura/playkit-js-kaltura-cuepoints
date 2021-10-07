@@ -30,7 +30,8 @@ export class ViewChangeLoader implements ILoader {
     request.params = {
       filter: {
         entryIdEqual: this._entryId,
-        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.CODE},
+        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.CODE
+      },
       responseProfile: {
         type: INCLUDE_FIELDS,
         fields: 'id, startTime, endTime, partnerData, cuePointType'
