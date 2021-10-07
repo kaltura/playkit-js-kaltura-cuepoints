@@ -66,14 +66,21 @@ export class VodProvider extends Provider {
       });
     }
     const cuePointsLoader: ViewChangeLoader = data.get(ViewChangeLoader.id);
-    const viewChangeCuePoints: Array<KalturaCodeCuePoint> = cuePointsLoader?.response.viewChangeCuePoints || [];
-    this._logger.debug(`_fetchVodData viewChange response successful with ${viewChangeCuePoints.length} cue points`);
+    const changeCuePoints: Array<KalturaCodeCuePoint> = cuePointsLoader?.response.viewChangeCuePoints || [];
+    this._logger.debug(`_fetchVodData viewChange response successful with ${changeCuePoints.length} cue points`);
 
-    if (viewChangeCuePoints.length) {
-      let cuePoints = createCuePointList(viewChangeCuePoints);
-      cuePoints = this._sortCuePoints(cuePoints);
-      cuePoints = this._fixCuePointsEndTime(cuePoints);
-      this._player.cuePointManager.addCuePoints(cuePoints);
+    if (changeCuePoints.length) {
+      let cuePoints = createCuePointList(changeCuePoints);
+      let lockedCuePoints = cuePoints.filter((cuepoint: any) => cuepoint.partnerData?.viewModeLockState);
+      lockedCuePoints = this._sortCuePoints(lockedCuePoints);
+      lockedCuePoints = this._fixCuePointsEndTime(lockedCuePoints);
+
+      let viewChangeCuePoints = cuePoints.filter((cuepoint: any) => !cuepoint.partnerData?.viewModeLockState);
+      viewChangeCuePoints = this._sortCuePoints(viewChangeCuePoints);
+      viewChangeCuePoints = this._fixCuePointsEndTime(viewChangeCuePoints);
+
+      this._player.cuePointManager.addCuePoints(viewChangeCuePoints);
+      this._player.cuePointManager.addCuePoints(lockedCuePoints);
     }
   }
 
