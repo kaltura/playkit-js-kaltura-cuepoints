@@ -1,5 +1,5 @@
 import ILoader = KalturaPlayerTypes.ILoader;
-import {KalturaCuePointListResponse, KalturaThumbCuePoint, KalturaCuePoint} from './response-types';
+import {KalturaCuePointListResponse, KalturaCuePoint} from './response-types';
 import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
 
 const {RequestBuilder} = KalturaPlayer.providers;
