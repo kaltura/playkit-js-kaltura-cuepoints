@@ -1,24 +1,25 @@
 import ILoader = KalturaPlayerTypes.ILoader;
 import {KalturaCuePointListResponse, KalturaThumbCuePoint, KalturaCuePoint} from './response-types';
+import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
 
 const {RequestBuilder} = KalturaPlayer.providers;
-interface KalturaThumbCuePointsResponse {
-  thumbCuePoints: Array<KalturaThumbCuePoint>;
+interface KalturaViewChangeCuePointsResponse {
+  viewChangeCuePoints: Array<KalturaCuePoint>;
 }
-export class ThumbLoader implements ILoader {
+export class ViewChangeLoader implements ILoader {
   _entryId: string = '';
   _requests: any[] = [];
-  _response: KalturaThumbCuePointsResponse = {thumbCuePoints: []};
+  _response: KalturaViewChangeCuePointsResponse = {viewChangeCuePoints: []};
 
   static get id(): string {
-    return 'thumb';
+    return 'viewchange';
   }
 
   /**
    * @constructor
    * @param {Object} params loader params
    */
-  constructor(params: {entryId: string; subTypesFilter: Array<number>}) {
+  constructor(params: {entryId: string}) {
     this._entryId = params.entryId;
     const headers: Map<string, string> = new Map();
     const request = new RequestBuilder(headers);
@@ -29,12 +30,10 @@ export class ThumbLoader implements ILoader {
     request.params = {
       filter: {
         entryIdEqual: this._entryId,
-        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.THUMB,
-        subTypeIn: params.subTypesFilter
-      },
+        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.CODE},
       responseProfile: {
         type: INCLUDE_FIELDS,
-        fields: 'id, assetId, startTime, cuePointType'
+        fields: 'id, startTime, endTime, partnerData, cuePointType'
       }
     };
     this.requests.push(request);
@@ -49,9 +48,9 @@ export class ThumbLoader implements ILoader {
   }
 
   set response(response: any) {
-    const thumbCuePointList = new KalturaCuePointListResponse<KalturaThumbCuePoint>(response[0]?.data, KalturaThumbCuePoint);
-    if (thumbCuePointList.totalCount) {
-      this._response.thumbCuePoints = thumbCuePointList.cuePoints;
+    const cuePointList = new KalturaCuePointListResponse<KalturaCodeCuePoint>(response[0]?.data, KalturaCodeCuePoint);
+    if (cuePointList.totalCount) {
+      this._response.viewChangeCuePoints = cuePointList.cuePoints;
     }
   }
 
