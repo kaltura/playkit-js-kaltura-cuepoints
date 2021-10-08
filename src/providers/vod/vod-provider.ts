@@ -28,11 +28,11 @@ export class VodProvider extends Provider {
 
     let requests: Array<ProviderRequest> = [];
     if (thumbSubTypesFilter) {
-      requests.push({loader: ThumbLoader, params: {entryId: this._player.config.sources.id, subTypesFilter: thumbSubTypesFilter}});
+      requests.push({loader: ThumbLoader, params: {entryId: this._player.sources.id, subTypesFilter: thumbSubTypesFilter}});
     }
 
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
-      requests.push({loader: ViewChangeLoader, params: {entryId: this._player.config.sources.id}});
+      requests.push({loader: ViewChangeLoader, params: {entryId: this._player.sources.id}});
     }
 
     if (requests.length) {
