@@ -32,7 +32,7 @@ export class LiveProvider extends Provider {
     this._currentTimeLivePromise = this._makeCurrentTimeLiveReadyPromise();
     this._pushNotification.init();
     this._constructPushNotificationListener();
-    this._pushNotification.registerToPushServer(this._player.getMediaInfo().entryId, types, this._handleConnection, this._handleConnectionError);
+    this._pushNotification.registerToPushServer(this._player.sources.id, types, this._handleConnection, this._handleConnectionError);
     this._addBindings();
   }
 

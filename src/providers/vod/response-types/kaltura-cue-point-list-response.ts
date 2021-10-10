@@ -1,6 +1,6 @@
-import {KalturaThumbCuePoint} from './kaltura-thumb-cue-point';
+import {KalturaCuePoint} from './kaltura-cue-point';
 
-export class KalturaCuePointListResponse {
+export class KalturaCuePointListResponse<KalturaCuePointType extends KalturaCuePoint> {
   /**
    * @member - The total count
    * @type {number}
@@ -10,16 +10,19 @@ export class KalturaCuePointListResponse {
    * @member - The entries
    * @type {Array<KalturaThumbCuePoint>}
    */
-  thumbCuePoints: Array<KalturaThumbCuePoint> = [];
+  cuePoints: Array<KalturaCuePointType> = [];
 
   /**
    * @constructor
    * @param {Object} responseObj The json response
    */
-  constructor(responseObj: any) {
+  constructor(responseObj: any, type: {new (cuePoint: any): KalturaCuePointType}) {
     this.totalCount = responseObj.totalCount;
     if (this.totalCount > 0) {
-      responseObj.objects.map((cuePoint: any) => this.thumbCuePoints.push(new KalturaThumbCuePoint(cuePoint)));
+      responseObj.objects.map((cuePoint: any) => {
+        const cp = new type(cuePoint);
+        this.cuePoints.push(cp);
+      });
     }
   }
 }

@@ -24,7 +24,6 @@ export class KalturaThumbCuePoint extends KalturaCuePoint {
    */
   subtype: number;
 
-
   constructor(thumbCuePoint: any) {
     super(thumbCuePoint);
     this.assetId = thumbCuePoint.assetId;

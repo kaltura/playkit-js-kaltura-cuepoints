@@ -64,7 +64,7 @@ export class CuepointService {
     } else {
       this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types);
     }
-  } 
+  }
 
   public reset(): void {
     this._mediaLoaded = false;
