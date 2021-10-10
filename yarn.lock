@@ -397,9 +397,9 @@
   integrity sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==
 
 "@types/react-redux@^7.1.16":
-  version "7.1.18"
-  resolved "https://registry.yarnpkg.com/@types/react-redux/-/react-redux-7.1.18.tgz#2bf8fd56ebaae679a90ebffe48ff73717c438e04"
-  integrity sha512-9iwAsPyJ9DLTRH+OFeIrm9cAbIj1i2ANL3sKQFATqnPWRbg+jEFXyZOKHiQK/N86pNRXbb4HRxAxo0SIX1XwzQ==
+  version "7.1.19"
+  resolved "https://registry.yarnpkg.com/@types/react-redux/-/react-redux-7.1.19.tgz#477bd0a9b01bae6d6bf809418cdfa7d3c16d4c62"
+  integrity sha512-L37dSCT0aoJnCgpR8Iuginlbxoh7qhWOXiaDqEsxVMrER1CmVhFD+63NxgJeT4pkmEM28oX0NH4S4f+sXHTZjA==
   dependencies:
     "@types/hoist-non-react-statics" "^3.3.0"
     "@types/react" "*"
@@ -5124,7 +5124,7 @@ just-extend@^4.0.2:
 
 "kaltura-player-js@https://github.com/kaltura/kaltura-player-js.git#master":
   version "1.13.2"
-  resolved "https://github.com/kaltura/kaltura-player-js.git#55c0aa62611ed368e62cd8e0fa37429617aed318"
+  resolved "https://github.com/kaltura/kaltura-player-js.git#becd23df0fee9ebe9cfc910fd65755d1868cbcf5"
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@playkit-js/playkit-js" "0.74.1"
