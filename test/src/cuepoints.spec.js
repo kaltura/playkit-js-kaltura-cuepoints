@@ -1,5 +1,7 @@
 import {setup, core} from 'kaltura-player-js';
 import * as TestUtils from './utils/test-utils';
+import {VodProvider} from '../../src/providers/vod/vod-provider';
+import {LiveProvider} from '../../src/providers/live/live-provider';
 import {Cuepoints} from '../../src';
 
 describe('Cue points plugin', function () {
@@ -63,6 +65,52 @@ describe('Cue points plugin', function () {
       const cps = player.getService('kalturaCuepoints');
       cps.registerTypes([cps.CuepointType.SLIDE]);
       expect(cps._types.get(cps.CuepointType.SLIDE)).to.eql(true);
+    });
+
+    it('should reset the service', done => {
+      const cps = player.getService('kalturaCuepoints');
+      cps.registerTypes([cps.CuepointType.SLIDE]);
+      player.addEventListener(player.Event.CHANGE_SOURCE_ENDED, () => {
+        let providerDestroy = sandbox.spy(cps._provider, 'destroy');
+        expect(cps._types.size).to.eql(1);
+        cps.reset();
+        expect(cps._types.size).to.eql(0);
+        expect(cps._mediaLoaded).to.eql(false);
+        providerDestroy.should.have.been.calledOnce;
+        done();
+      });
+      player.configure({sources});
+    });
+
+    it('should not init provider if no-one type registered', done => {
+      const cps = player.getService('kalturaCuepoints');
+      player.addEventListener(player.Event.CHANGE_SOURCE_ENDED, () => {
+        expect(cps._types.size).to.eql(0);
+        expect(cps._provider).to.be.undefined;
+        done();
+      });
+      player.configure({sources});
+    });
+
+    it('should init VOD provider', done => {
+      const cps = player.getService('kalturaCuepoints');
+      cps.registerTypes([cps.CuepointType.SLIDE]);
+      player.addEventListener(player.Event.CHANGE_SOURCE_ENDED, () => {
+        expect(cps._provider).to.be.instanceOf(VodProvider);
+        done();
+      });
+      player.configure({sources});
+    });
+
+    it('should init LIVE provider', done => {
+      const cps = player.getService('kalturaCuepoints');
+      cps.registerTypes([cps.CuepointType.SLIDE]);
+      player.isLive = () => true;
+      player.addEventListener(player.Event.CHANGE_SOURCE_ENDED, () => {
+        expect(cps._provider).to.be.instanceOf(LiveProvider);
+        done();
+      });
+      player.configure({sources});
     });
   });
 });
