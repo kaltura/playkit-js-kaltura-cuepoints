@@ -115,6 +115,7 @@ export class LiveProvider extends Provider {
         if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
           const fixedCue = {...cue, endTime: cuePoints[index + 1].startTime};
           this._player.cuePointManager.addCuePoints([fixedCue]);
+          return fixedCue;
         }
         return cue;
       });
