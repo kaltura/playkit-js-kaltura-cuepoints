@@ -18,7 +18,7 @@ export class ThumbLoader implements ILoader {
    * @constructor
    * @param {Object} params loader params
    */
-  constructor(params: {entryId: string; subTypesFilter: Array<number>}) {
+  constructor(params: {entryId: string; subTypesFilter: string}) {
     this._entryId = params.entryId;
     const headers: Map<string, string> = new Map();
     const request = new RequestBuilder(headers);
@@ -28,6 +28,7 @@ export class ThumbLoader implements ILoader {
     request.action = 'list';
     request.params = {
       filter: {
+        objectType: 'KalturaThumbCuePointFilter',
         entryIdEqual: this._entryId,
         cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.THUMB,
         subTypeIn: params.subTypesFilter

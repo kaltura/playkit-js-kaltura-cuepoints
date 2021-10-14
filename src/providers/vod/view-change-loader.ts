@@ -29,6 +29,7 @@ export class ViewChangeLoader implements ILoader {
     request.action = 'list';
     request.params = {
       filter: {
+        objectType: 'KalturaCodeCuePointFilter',
         entryIdEqual: this._entryId,
         cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.CODE
       },
