@@ -18,7 +18,7 @@ export class ThumbLoader implements ILoader {
    * @constructor
    * @param {Object} params loader params
    */
-  constructor(params: {entryId: string; subTypesFilter: Array<number>}) {
+  constructor(params: {entryId: string; subTypesFilter: string}) {
     this._entryId = params.entryId;
     const headers: Map<string, string> = new Map();
     const request = new RequestBuilder(headers);
