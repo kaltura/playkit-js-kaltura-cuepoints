@@ -28,6 +28,7 @@ export class ThumbLoader implements ILoader {
     request.action = 'list';
     request.params = {
       filter: {
+        objectType: 'KalturaThumbCuePointFilter',
         entryIdEqual: this._entryId,
         cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.THUMB,
         subTypeIn: params.subTypesFilter
