@@ -5,7 +5,7 @@ import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from 
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl} from '../utils';
+import {makeAssetUrl, prepareEndTime, prepareThumbStartTime} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
 
@@ -60,10 +60,10 @@ export class VodProvider extends Provider {
 
   private _fixCuePointsEndTime<T extends {startTime: number; endTime: number}>(cuePoints: T[]) {
     return cuePoints.map((cuePoint: any, index: number) => {
-      if (!cuePoint.endTime) {
+      if (cuePoint.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
         return {
           ...cuePoint,
-          endTime: index === cuePoints.length - 1 ? Number.MAX_SAFE_INTEGER : cuePoints[index + 1].startTime
+          endTime: prepareEndTime(cuePoints[index + 1].startTime)
         };
       }
       return cuePoint;
@@ -118,8 +118,8 @@ export class VodProvider extends Provider {
           assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
-          startTime: thumbCuePoint.startTime / 1000,
-          endTime: 0
+          startTime: prepareThumbStartTime(thumbCuePoint.startTime),
+          endTime: Number.MAX_SAFE_INTEGER
         };
       });
     };

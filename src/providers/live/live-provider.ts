@@ -9,7 +9,7 @@ import {
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
 } from './push-notifications-provider';
-import {makeAssetUrl} from '../utils';
+import {makeAssetUrl, prepareEndTime, prepareThumbStartTime} from '../utils';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -113,7 +113,7 @@ export class LiveProvider extends Provider {
       .map((cue, index) => {
         // fix endTime and replace VTTCue
         if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
-          const fixedCue = {...cue, endTime: cuePoints[index + 1].startTime};
+          const fixedCue = {...cue, endTime: prepareEndTime(cuePoints[index + 1].startTime)};
           this._player.cuePointManager.addCuePoints([fixedCue]);
           return fixedCue;
         }
@@ -125,7 +125,7 @@ export class LiveProvider extends Provider {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
     const newThumbCue = {
       ...newThumb,
-      startTime: Number(startTime.toFixed(2)),
+      startTime: prepareThumbStartTime(startTime),
       endTime: Number.MAX_SAFE_INTEGER,
       assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
     };
