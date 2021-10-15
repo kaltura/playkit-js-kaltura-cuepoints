@@ -18,5 +18,5 @@ export function prepareEndTime(endTime: number) {
 }
 
 export function prepareThumbStartTime(startTime: number) {
-  return Math.round(startTime / 1000);
+  return Math.round(startTime);
 }

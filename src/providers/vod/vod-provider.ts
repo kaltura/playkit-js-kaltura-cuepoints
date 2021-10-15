@@ -118,7 +118,7 @@ export class VodProvider extends Provider {
           assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
-          startTime: prepareThumbStartTime(thumbCuePoint.startTime),
+          startTime: prepareThumbStartTime(thumbCuePoint.startTime / 1000),
           endTime: Number.MAX_SAFE_INTEGER
         };
       });
