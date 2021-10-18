@@ -16,7 +16,3 @@ export function makeAssetUrl(serviceUrl: string = DEFAULT_SERVICE_URL, assetId: 
 export function prepareEndTime(endTime: number) {
   return endTime - END_TIME_DELTA;
 }
-
-export function prepareThumbStartTime(startTime: number) {
-  return Math.round(startTime);
-}

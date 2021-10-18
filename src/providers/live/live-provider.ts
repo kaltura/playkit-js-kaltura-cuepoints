@@ -9,7 +9,7 @@ import {
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
 } from './push-notifications-provider';
-import {makeAssetUrl, prepareEndTime, prepareThumbStartTime} from '../utils';
+import {makeAssetUrl, prepareEndTime} from '../utils';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -125,7 +125,7 @@ export class LiveProvider extends Provider {
     const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
     const newThumbCue = {
       ...newThumb,
-      startTime: prepareThumbStartTime(startTime),
+      startTime,
       endTime: Number.MAX_SAFE_INTEGER,
       assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
     };

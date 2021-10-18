@@ -5,7 +5,7 @@ import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from 
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl, prepareEndTime, prepareThumbStartTime} from '../utils';
+import {makeAssetUrl, prepareEndTime} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
 
@@ -118,7 +118,7 @@ export class VodProvider extends Provider {
           assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
-          startTime: prepareThumbStartTime(thumbCuePoint.startTime / 1000),
+          startTime: thumbCuePoint.startTime / 1000,
           endTime: Number.MAX_SAFE_INTEGER
         };
       });
