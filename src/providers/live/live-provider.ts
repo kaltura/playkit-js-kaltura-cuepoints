@@ -121,12 +121,19 @@ export class LiveProvider extends Provider {
       });
   }
 
+  private _makeCuePointStartEndTime = (cuePointCreatedAt: number) => {
+    let startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
+    if (startTime < 0) {
+      // TextTrack in Safari doesn't allow add new cue-points with startTime less then 0
+      startTime = this._player.currentTime;
+    }
+    return {startTime, endTime: Number.MAX_SAFE_INTEGER};
+  };
+
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
-    const startTime = this._player.currentTime - (this._currentTimeLive - newThumb.createdAt);
     const newThumbCue = {
       ...newThumb,
-      startTime,
-      endTime: Number.MAX_SAFE_INTEGER,
+      ...this._makeCuePointStartEndTime(newThumb.createdAt),
       assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
     };
     this._thumbCuePoints.push(newThumbCue);
@@ -135,13 +142,11 @@ export class LiveProvider extends Provider {
   };
 
   private _prepareViewChangeCuePoints = (viewChange: SlideViewChangePushNotificationData) => {
-    const startTime = this._player.currentTime - (this._currentTimeLive - viewChange.createdAt);
     try {
       const partnerData = JSON.parse(viewChange.partnerData);
       const newViewChangeCue = {
         ...viewChange,
-        startTime: Number(startTime.toFixed(2)),
-        endTime: Number.MAX_SAFE_INTEGER,
+        ...this._makeCuePointStartEndTime(viewChange.createdAt),
         partnerData
       };
       this._slideViewChangeCuePoints.push(newViewChangeCue);
