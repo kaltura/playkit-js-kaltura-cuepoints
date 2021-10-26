@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.2...v1.2.3) (2021-10-26)
+
+
+### Bug Fixes
+
+* **FEV-1104:** slides are missing during live when no DVR is configured ([#12](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/12)) ([370c1f8](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/370c1f8))
+
+
+
 ### [1.2.2](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.1...v1.2.2) (2021-10-19)
 
 
