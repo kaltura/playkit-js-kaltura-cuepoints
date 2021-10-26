@@ -124,7 +124,7 @@ export class LiveProvider extends Provider {
   private _makeCuePointStartEndTime = (cuePointCreatedAt: number) => {
     let startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
     if (startTime < 0) {
-      // TextTrack in Safari doesn't allow add new cue-points with startTime less then player current time
+      // TextTrack in Safari doesn't allow add new cue-points with startTime less then 0
       startTime = this._player.currentTime;
     }
     return {startTime, endTime: Number.MAX_SAFE_INTEGER};
