@@ -3,7 +3,6 @@ import * as TestUtils from '../../utils/test-utils';
 import {EventManager} from '@playkit-js/playkit-js';
 import {LiveProvider} from '../../../../src/providers/live/live-provider';
 import {PushNotificationPrivider} from '../../../../src/providers/live/push-notifications-provider';
-import {END_TIME_DELTA} from "../../../../src/providers/utils";
 
 describe('Check Live provider', () => {
   let player, sandbox, liveProvider;
@@ -117,7 +116,7 @@ describe('Check Live provider', () => {
         {createdAt: 20, startTime: 20, endTime: Number.MAX_SAFE_INTEGER}
       ]);
       expect(result).to.eql([
-        {createdAt: 10, startTime: 10, endTime: 20 - END_TIME_DELTA},
+        {createdAt: 10, startTime: 10, endTime: 20},
         {createdAt: 20, startTime: 20, endTime: Number.MAX_SAFE_INTEGER}
       ]);
     });
