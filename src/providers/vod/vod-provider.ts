@@ -5,7 +5,7 @@ import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from 
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl, prepareEndTime} from '../utils';
+import {makeAssetUrl} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
 
@@ -63,7 +63,7 @@ export class VodProvider extends Provider {
       if (cuePoint.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
         return {
           ...cuePoint,
-          endTime: prepareEndTime(cuePoints[index + 1].startTime)
+          endTime: cuePoints[index + 1].startTime
         };
       }
       return cuePoint;
