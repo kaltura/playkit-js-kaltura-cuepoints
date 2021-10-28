@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.4](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.3...v1.2.4) (2021-10-28)
+
+
+### Bug Fixes
+
+* **FEV-1122:** switch layout fix ([1b4f8c3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/1b4f8c3))
+
+
+
 ### [1.2.3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.2...v1.2.3) (2021-10-26)
 
 
