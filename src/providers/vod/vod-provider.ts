@@ -115,7 +115,7 @@ export class VodProvider extends Provider {
     const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>) => {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
-          assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
+          assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
           startTime: thumbCuePoint.startTime / 1000,
