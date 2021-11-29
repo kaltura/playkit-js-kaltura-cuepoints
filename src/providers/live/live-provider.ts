@@ -134,7 +134,7 @@ export class LiveProvider extends Provider {
     const newThumbCue = {
       ...newThumb,
       ...this._makeCuePointStartEndTime(newThumb.createdAt),
-      assetUrl: makeAssetUrl(this._player.config.provider.env?.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
+      assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
