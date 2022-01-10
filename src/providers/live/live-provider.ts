@@ -114,7 +114,7 @@ export class LiveProvider extends Provider {
         // fix endTime and replace VTTCue
         if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
           const fixedCue = {...cue, endTime: cuePoints[index + 1].startTime};
-          this._player.cuePointManager.addCuePoints([fixedCue]);
+          this._addCuePointToPlayer([fixedCue]);
           return fixedCue;
         }
         return cue;
@@ -138,7 +138,7 @@ export class LiveProvider extends Provider {
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
-    this._player.cuePointManager.addCuePoints([newThumbCue]);
+    this._addCuePointToPlayer([newThumbCue]);
   };
 
   private _prepareViewChangeCuePoints = (viewChange: SlideViewChangePushNotificationData) => {
@@ -151,7 +151,7 @@ export class LiveProvider extends Provider {
       };
       this._slideViewChangeCuePoints.push(newViewChangeCue);
       this._slideViewChangeCuePoints = this._fixCuePointEndTime(this._slideViewChangeCuePoints);
-      this._player.cuePointManager.addCuePoints([newViewChangeCue]);
+      this._addCuePointToPlayer([newViewChangeCue]);
     } catch (e) {
       this._logger.error('Unnable parse slide-view change cue-point');
     }
