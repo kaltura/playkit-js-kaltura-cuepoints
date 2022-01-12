@@ -106,8 +106,8 @@ export class VodProvider extends Provider {
       viewChangeCuePoints = this._sortCuePoints(viewChangeCuePoints);
       viewChangeCuePoints = this._fixCuePointsEndTime(viewChangeCuePoints);
 
-      this._player.cuePointManager.addCuePoints(viewChangeCuePoints);
-      this._player.cuePointManager.addCuePoints(lockedCuePoints);
+      this._addCuePointToPlayer(viewChangeCuePoints);
+      this._addCuePointToPlayer(lockedCuePoints);
     }
   }
 
@@ -130,7 +130,7 @@ export class VodProvider extends Provider {
       let cuePoints = createCuePointList(thumbCuePoints);
       cuePoints = this._sortCuePoints(cuePoints);
       cuePoints = this._fixCuePointsEndTime(cuePoints);
-      this._player.cuePointManager.addCuePoints(cuePoints);
+      this._addCuePointToPlayer(cuePoints);
     }
   }
 }

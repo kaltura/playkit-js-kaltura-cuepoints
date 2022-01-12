@@ -125,7 +125,8 @@ describe('Check Live provider', () => {
       const addCuePoints = sinon.spy();
       liveProvider._player = {
         currentTime: 5,
-        config: {session: {ks: 'test_ks'}, provider: {env: {serviceUrl: 'test_url'}}},
+        config: {session: {ks: 'test_ks'}},
+        provider: {env: {serviceUrl: 'test_url'}},
         cuePointManager: {addCuePoints}
       };
       liveProvider._currentTimeLive = 100;
@@ -144,8 +145,20 @@ describe('Check Live provider', () => {
           assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id/ks/test_ks'
         }
       ];
+      const playerResult = [
+        {
+          id: '1',
+          startTime: 1,
+          endTime: Number.MAX_SAFE_INTEGER,
+          metadata: {
+            assetId: 'test_id',
+            createdAt: 96,
+            assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id/ks/test_ks'
+          }
+        }
+      ];
       expect(liveProvider._thumbCuePoints).to.eql(result);
-      addCuePoints.should.have.been.calledOnceWithExactly(result);
+      addCuePoints.should.have.been.calledOnceWithExactly(playerResult);
     });
 
     it('should test _prepareViewChangeCuePoints method', () => {
@@ -169,8 +182,19 @@ describe('Check Live provider', () => {
           partnerData: {viewModeLockState: 'locked'}
         }
       ];
+      const playerResult = [
+        {
+          id: '1',
+          startTime: 1,
+          endTime: Number.MAX_SAFE_INTEGER,
+          metadata: {
+            createdAt: 96,
+            partnerData: {viewModeLockState: 'locked'}
+          }
+        }
+      ];
       expect(liveProvider._slideViewChangeCuePoints).to.eql(result);
-      addCuePoints.should.have.been.calledOnceWithExactly(result);
+      addCuePoints.should.have.been.calledOnceWithExactly(playerResult);
     });
   });
 });

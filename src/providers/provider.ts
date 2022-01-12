@@ -20,6 +20,14 @@ export class Provider {
     this._eventManager = eventManager;
     this._logger = logger;
   }
+  
+  protected _addCuePointToPlayer(cuePoints: any[]) {
+    const playerCuePoints = cuePoints.map(cuePoint => {
+      const {startTime, endTime, id, ...metadata} = cuePoint;
+      return {startTime, endTime, id, metadata};
+    });
+    this._player.cuePointManager.addCuePoints(playerCuePoints);
+  }
 
   public destroy() {}
 }
