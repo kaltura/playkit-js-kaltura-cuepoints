@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.4...v1.3.0) (2022-01-19)
+
+
+### Bug Fixes
+
+* **FEC-11873:** player doesn't load on IE11 - errors appear in the console ([#16](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/16)) ([c33a0c6](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/c33a0c6))
+
+
+### Features
+
+* **FEC-11608:** Provider - Expose default service Url ([#14](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/14)) ([737d625](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/737d625))
+* **FEC-11761:** expose stream timed metadata - phase 2 ([#15](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/15)) ([9d42702](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/9d42702))
+
+
+
 ### [1.2.4](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.3...v1.2.4) (2021-10-28)
 
 
