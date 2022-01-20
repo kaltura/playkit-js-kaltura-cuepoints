@@ -95,7 +95,7 @@ export class VodProvider extends Provider {
         return {
           id: viewChangeCuePoint.id,
           startTime: viewChangeCuePoint.startTime / 1000,
-          endTime: viewChangeCuePoint.endTime,
+          endTime: viewChangeCuePoint.endTime || Number.MAX_SAFE_INTEGER,
           cuePointType: viewChangeCuePoint.cuePointType,
           partnerData: viewChangeCuePoint.partnerData
         };
