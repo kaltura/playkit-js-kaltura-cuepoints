@@ -35,7 +35,7 @@ export class VodProvider extends Provider {
       requests.push({loader: ViewChangeLoader, params: {entryId: this._player.sources.id}});
     }
 
-    if (this._types.has(KalturaCuePointType.QUIZ_QUESTION)) {
+    if (this._types.has(KalturaCuePointType.QUIZ)) {
       requests.push({loader: QuizQuestionLoader, params: {entryId: this._player.sources.id}});
     }
 
