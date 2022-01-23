@@ -1,13 +1,13 @@
 import {Provider, ProviderRequest} from '../provider';
 import {ThumbLoader} from './thumb-loader';
-import {KalturaQuizQuestionCuePoint, KalturaThumbCuePoint, KalturaCodeCuePoint} from './response-types';
+import {KalturaThumbCuePoint} from './response-types';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 import {makeAssetUrl} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
-import {QuizQuestionLoader} from './quiz-question-loader';
+import {KalturaCodeCuePoint} from './response-types/kaltura-code-cue-point';
 
 export class VodProvider extends Provider {
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
@@ -35,26 +35,15 @@ export class VodProvider extends Provider {
       requests.push({loader: ViewChangeLoader, params: {entryId: this._player.sources.id}});
     }
 
-    if (this._types.has(KalturaCuePointType.QUIZ)) {
-      requests.push({loader: QuizQuestionLoader, params: {entryId: this._player.sources.id}});
-    }
-
     if (requests.length) {
       this._player.provider
         .doRequest(requests)
         .then((data: Map<string, any>) => {
-          if (!data) {
-            this._logger.warn("Provider cue points doRequest doesn't have data");
-            return;
-          }
-          if (data.has(ThumbLoader.id)) {
+          if (data && data.has(ThumbLoader.id)) {
             this._handleThumbResponse(data);
           }
-          if (data.has(ViewChangeLoader.id)) {
+          if (data && data.has(ViewChangeLoader.id)) {
             this._handleViewChangeResponse(data);
-          }
-          if (data.has(QuizQuestionLoader.id)) {
-            this._handleQuizQustionResponse(data);
           }
         })
         .catch((e: any) => {
@@ -139,27 +128,6 @@ export class VodProvider extends Provider {
     this._logger.debug(`_fetchVodData thumb response successful with ${thumbCuePoints.length} cue points`);
     if (thumbCuePoints.length) {
       let cuePoints = createCuePointList(thumbCuePoints);
-      cuePoints = this._sortCuePoints(cuePoints);
-      cuePoints = this._fixCuePointsEndTime(cuePoints);
-      this._addCuePointToPlayer(cuePoints);
-    }
-  }
-
-  private _handleQuizQustionResponse(data: Map<string, any>) {
-    const createCuePointList = (quizQuestionCuePoints: Array<KalturaQuizQuestionCuePoint>) => {
-      return quizQuestionCuePoints.map((quizQuestionCuePoint: KalturaQuizQuestionCuePoint) => {
-        return {
-          ...quizQuestionCuePoint,
-          startTime: quizQuestionCuePoint.startTime / 1000,
-          endTime: Number.MAX_SAFE_INTEGER
-        };
-      });
-    };
-    const quizQuestionCuePointsLoader: QuizQuestionLoader = data.get(QuizQuestionLoader.id);
-    const quizQuestionCuePoints: Array<KalturaQuizQuestionCuePoint> = quizQuestionCuePointsLoader?.response.quizQuestionCuePoints || [];
-    this._logger.debug(`_fetchVodData quiz question response successful with ${quizQuestionCuePoints.length} cue points`);
-    if (quizQuestionCuePoints.length) {
-      let cuePoints = createCuePointList(quizQuestionCuePoints);
       cuePoints = this._sortCuePoints(cuePoints);
       cuePoints = this._fixCuePointsEndTime(cuePoints);
       this._addCuePointToPlayer(cuePoints);

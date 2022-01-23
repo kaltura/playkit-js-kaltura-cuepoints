@@ -6,7 +6,6 @@ export enum KalturaThumbCuePointSubType {
 }
 export enum KalturaCuePointType {
   // AOA = 'aoa',
-  QUIZ = 'quiz',
   SLIDE = 'slide',
   VIEW_CHANGE = 'viewchange'
   // HOTSPOT = 'hotspot',
