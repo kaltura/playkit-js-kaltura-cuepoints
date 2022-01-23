@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.3.0...v1.4.0) (2022-01-23)
+
+
+### Bug Fixes
+
+* **FEV-1142:** set default time for veiw-change cue-points ([#17](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/17)) ([aabd4e8](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/aabd4e8))
+
+
+### Features
+
+* **FEV-1168:** Add "quiz" type of cue-points to Kaltura-cue-points plugin ([#18](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/18)) ([ed819d8](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/ed819d8))
+
+
+
 ## [1.3.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.2.4...v1.3.0) (2022-01-19)
 
 
