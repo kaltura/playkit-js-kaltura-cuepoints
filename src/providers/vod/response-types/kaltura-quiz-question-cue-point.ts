@@ -23,6 +23,8 @@ export class KalturaQuizQuestionCuePoint extends KalturaCuePoint {
   excludeFromScore: boolean;
   objectType: string;
   optionalAnswers: Array<OptionalAnswer>;
+  hint?: string;
+  explanation?: string;
   question: string;
   questionType: KalturaQuestionType;
   userId: string;
@@ -32,6 +34,8 @@ export class KalturaQuizQuestionCuePoint extends KalturaCuePoint {
     this.excludeFromScore = codeCuePoint.excludeFromScore;
     this.objectType = codeCuePoint.objectType;
     this.optionalAnswers = codeCuePoint.optionalAnswers;
+    this.hint = codeCuePoint.hint;
+    this.explanation = codeCuePoint.explanation;
     this.question = codeCuePoint.question;
     this.questionType = codeCuePoint.questionType;
     this.userId = codeCuePoint.userId;
