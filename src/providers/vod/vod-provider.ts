@@ -70,12 +70,19 @@ export class VodProvider extends Provider {
   }
 
   private _fixCuePointsEndTime<T extends {startTime: number; endTime: number}>(cuePoints: T[]) {
-    return cuePoints.map((cuePoint: any, index: number) => {
-      if (cuePoint.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
-        return {
-          ...cuePoint,
-          endTime: cuePoints[index + 1].startTime
-        };
+    return cuePoints.map((cuePoint, index) => {
+      if (cuePoint.endTime === Number.MAX_SAFE_INTEGER) {
+        // aggregating cupoints with same startTime and setting them endTime of next future cuepoints
+        let n = index + 1;
+        while (cuePoints[n]) {
+          if (cuePoints[n].startTime !== cuePoint.startTime) {
+            return {
+              ...cuePoint,
+              endTime: cuePoints[n].startTime
+            };
+          }
+          n++;
+        }
       }
       return cuePoint;
     });
