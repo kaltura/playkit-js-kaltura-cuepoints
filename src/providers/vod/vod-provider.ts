@@ -155,10 +155,11 @@ export class VodProvider extends Provider {
   private _handleQuizQustionResponse(data: Map<string, any>) {
     const createCuePointList = (quizQuestionCuePoints: Array<KalturaQuizQuestionCuePoint>) => {
       return quizQuestionCuePoints.map((quizQuestionCuePoint: KalturaQuizQuestionCuePoint) => {
+        const startTime = quizQuestionCuePoint.startTime / 1000;
         return {
           ...quizQuestionCuePoint,
-          startTime: quizQuestionCuePoint.startTime / 1000,
-          endTime: Number.MAX_SAFE_INTEGER
+          startTime,
+          endTime: startTime + 1 // for quiz we use 1s cue-point duration
         };
       });
     };
@@ -168,7 +169,6 @@ export class VodProvider extends Provider {
     if (quizQuestionCuePoints.length) {
       let cuePoints = createCuePointList(quizQuestionCuePoints);
       cuePoints = this._sortCuePoints(cuePoints);
-      cuePoints = this._fixCuePointsEndTime(cuePoints);
       this._addCuePointToPlayer(cuePoints);
     }
   }
