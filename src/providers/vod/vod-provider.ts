@@ -159,7 +159,7 @@ export class VodProvider extends Provider {
         return {
           ...quizQuestionCuePoint,
           startTime,
-          endTime: startTime + 1 // for quiz we use 1s cue-point duration
+          endTime: startTime + 0.1 // quiz cue-point duration 100ms
         };
       });
     };
