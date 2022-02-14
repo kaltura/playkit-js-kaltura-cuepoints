@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.4.0...v1.5.0) (2022-02-14)
+
+
+### Bug Fixes
+
+* **FEV-1085:** only first cue point with same end\start time become active  ([#19](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/19)) ([99932b5](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/99932b5))
+
+
+### Features
+
+* **FEV-1035:** quiz cue-points end-time ([#21](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/21)) ([6dcee15](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/6dcee15))
+
+
+
 ## [1.4.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.3.0...v1.4.0) (2022-01-23)
 
 
