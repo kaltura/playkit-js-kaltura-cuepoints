@@ -9,3 +9,11 @@ export function getDomainFromUrl(url: string) {
 export function makeAssetUrl(serviceUrl: string, assetId: string, ks: string = '') {
   return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}/ks/${ks}`;
 }
+
+export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondarySortKey?: string) {
+  return cuePoints.sort(function (a: any, b: any) {
+    return secondarySortKey
+      ? a[primarySortKey] - b[primarySortKey] || a[secondarySortKey] - b[secondarySortKey]
+      : a[primarySortKey] - b[primarySortKey];
+  });
+}
