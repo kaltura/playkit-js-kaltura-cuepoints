@@ -9,7 +9,7 @@ import {
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
 } from './push-notifications-provider';
-import {makeAssetUrl} from '../utils';
+import {makeAssetUrl, sortArrayBy} from '../utils';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -106,19 +106,15 @@ export class LiveProvider extends Provider {
   };
 
   private _fixCuePointEndTime<T extends ThumbPushNotificationData | SlideViewChangePushNotificationData>(cuePoints: T[]) {
-    return cuePoints
-      .sort((a, b) => {
-        return a.createdAt - b.createdAt;
-      })
-      .map((cue, index) => {
-        // fix endTime and replace VTTCue
-        if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
-          const fixedCue = {...cue, endTime: cuePoints[index + 1].startTime};
-          this._addCuePointToPlayer([fixedCue]);
-          return fixedCue;
-        }
-        return cue;
-      });
+    return sortArrayBy(cuePoints, 'createdAt').map((cue, index) => {
+      // fix endTime and replace VTTCue
+      if (cue.endTime === Number.MAX_SAFE_INTEGER && index !== cuePoints.length - 1) {
+        const fixedCue = {...cue, endTime: cuePoints[index + 1].startTime};
+        this._addCuePointToPlayer([fixedCue]);
+        return fixedCue;
+      }
+      return cue;
+    });
   }
 
   private _makeCuePointStartEndTime = (cuePointCreatedAt: number) => {

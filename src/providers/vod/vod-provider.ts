@@ -5,7 +5,7 @@ import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from 
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl} from '../utils';
+import {makeAssetUrl, sortArrayBy} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
 
@@ -63,12 +63,6 @@ export class VodProvider extends Provider {
     }
   }
 
-  private _sortCuePoints<T extends {startTime: number}>(cuePoints: T[]) {
-    return cuePoints.sort(function (a: any, b: any) {
-      return a.startTime - b.startTime;
-    });
-  }
-
   private _fixCuePointsEndTime<T extends {startTime: number; endTime: number}>(cuePoints: T[]) {
     return cuePoints.map((cuePoint, index) => {
       if (cuePoint.endTime === Number.MAX_SAFE_INTEGER) {
@@ -118,10 +112,10 @@ export class VodProvider extends Provider {
         {lockedCuePoints: [], viewChangeCuePoints: []}
       );
 
-      lockedCuePoints = this._sortCuePoints(lockedCuePoints);
+      lockedCuePoints = sortArrayBy(lockedCuePoints, 'startTime');
       lockedCuePoints = this._fixCuePointsEndTime(lockedCuePoints);
 
-      viewChangeCuePoints = this._sortCuePoints(viewChangeCuePoints);
+      viewChangeCuePoints = sortArrayBy(viewChangeCuePoints, 'startTime');
       viewChangeCuePoints = this._fixCuePointsEndTime(viewChangeCuePoints);
 
       this._addCuePointToPlayer(viewChangeCuePoints);
@@ -146,7 +140,7 @@ export class VodProvider extends Provider {
     this._logger.debug(`_fetchVodData thumb response successful with ${thumbCuePoints.length} cue points`);
     if (thumbCuePoints.length) {
       let cuePoints = createCuePointList(thumbCuePoints);
-      cuePoints = this._sortCuePoints(cuePoints);
+      cuePoints = sortArrayBy(cuePoints, 'startTime');
       cuePoints = this._fixCuePointsEndTime(cuePoints);
       this._addCuePointToPlayer(cuePoints);
     }
@@ -168,7 +162,7 @@ export class VodProvider extends Provider {
     this._logger.debug(`_fetchVodData quiz question response successful with ${quizQuestionCuePoints.length} cue points`);
     if (quizQuestionCuePoints.length) {
       let cuePoints = createCuePointList(quizQuestionCuePoints);
-      cuePoints = this._sortCuePoints(cuePoints);
+      cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
       this._addCuePointToPlayer(cuePoints);
     }
   }
