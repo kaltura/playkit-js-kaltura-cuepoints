@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.1](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.0...v1.5.1) (2022-03-29)
+
+
+### Bug Fixes
+
+* **FEV-1197:** advanced sort of cue-points ([#22](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/22)) ([1bf1b8b](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/1bf1b8b))
+
+
+
 ## [1.5.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.4.0...v1.5.0) (2022-02-14)
 
 
