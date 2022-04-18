@@ -153,7 +153,7 @@ export class VodProvider extends Provider {
         return {
           ...quizQuestionCuePoint,
           startTime,
-          endTime: startTime + 0.5 // quiz cue-point duration 500ms
+          endTime: startTime + 0.5 // quiz cue-point duration 500ms (Safari needs at least 350ms to proper define ative cue-points)
         };
       });
     };
