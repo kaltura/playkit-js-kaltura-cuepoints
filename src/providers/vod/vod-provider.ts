@@ -5,7 +5,7 @@ import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from 
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl, sortArrayBy} from '../utils';
+import {makeAssetUrl, sortArrayBy, isSafari} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
 
@@ -150,10 +150,11 @@ export class VodProvider extends Provider {
     const createCuePointList = (quizQuestionCuePoints: Array<KalturaQuizQuestionCuePoint>) => {
       return quizQuestionCuePoints.map((quizQuestionCuePoint: KalturaQuizQuestionCuePoint) => {
         const startTime = quizQuestionCuePoint.startTime / 1000;
+        const quePointDuration = isSafari() ? 0.35 : 0.15;
         return {
           ...quizQuestionCuePoint,
           startTime,
-          endTime: startTime + 0.1 // quiz cue-point duration 100ms
+          endTime: startTime + quePointDuration
         };
       });
     };
