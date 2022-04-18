@@ -17,7 +17,3 @@ export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondary
       : a[primarySortKey] - b[primarySortKey];
   });
 }
-
-export function isSafari(): Boolean {
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-}
