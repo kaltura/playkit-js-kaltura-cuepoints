@@ -12,3 +12,6 @@ export enum KalturaCuePointType {
   // HOTSPOT = 'hotspot',
   // CHAPTER = 'chapter'
 }
+export interface CuepointsConfig {
+  loadThumbnailWithKs: boolean;
+}
