@@ -7,7 +7,7 @@ export function getDomainFromUrl(url: string) {
 }
 
 export function makeAssetUrl(serviceUrl: string, assetId: string, ks: string = '') {
-  return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}/ks/${ks}`;
+  return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}${ks ? `/ks/${ks}` : ''}`;
 }
 
 export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondarySortKey?: string) {
