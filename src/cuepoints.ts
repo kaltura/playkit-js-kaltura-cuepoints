@@ -1,5 +1,4 @@
 import {CuepointService} from './cuepoint-service';
-import {CuepointsConfig} from './types';
 import Player = KalturaPlayerTypes.Player;
 
 export class Cuepoints extends KalturaPlayer.core.BasePlugin {
@@ -8,14 +7,12 @@ export class Cuepoints extends KalturaPlayer.core.BasePlugin {
    * The default configuration of the plugin.
    * @static
    */
-  static defaultConfig: CuepointsConfig = {
-    loadThumbnailWithKs: false
-  };
+  static defaultConfig = {};
 
-  constructor(name: string, player: Player, config: CuepointsConfig) {
-    super(name, player, config);
+  constructor(name: string, player: Player) {
+    super(name, player);
 
-    this._cuePointService = new CuepointService(player, this.eventManager, this.logger, this.config);
+    this._cuePointService = new CuepointService(player, this.eventManager, this.logger);
     player.registerService('kalturaCuepoints', this._cuePointService);
   }
 
