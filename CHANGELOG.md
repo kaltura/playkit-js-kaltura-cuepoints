@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.2...v1.5.3) (2022-05-04)
+
+
+### Bug Fixes
+
+* **FEV-1249:** use KS for thumbnails only if configured "loadThumbnailWithKs" property ([#24](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/24)) ([c4f6c1a](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/c4f6c1a))
+
+
+
+### [1.5.2](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.1...v1.5.2) (2022-05-02)
+
+
+### Bug Fixes
+
+* **FEV-1225:** most of the times the first quiz (00:00:00) is not presented to the user (video will pass that point) ([#23](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/23)) ([27cce97](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/27cce97))
+
+
+
 ### [1.5.1](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.0...v1.5.1) (2022-03-29)
 
 
