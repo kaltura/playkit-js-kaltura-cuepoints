@@ -5,7 +5,7 @@ import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from 
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl, sortArrayBy} from '../utils';
+import {makeAssetUrl, sortArrayBy, getKs} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
 
@@ -127,7 +127,7 @@ export class VodProvider extends Provider {
     const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>) => {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
-          assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
+          assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, thumbCuePoint.assetId, getKs(this._player)),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
           startTime: thumbCuePoint.startTime / 1000,
