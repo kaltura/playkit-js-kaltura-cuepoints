@@ -1,5 +1,5 @@
 import {Provider} from '../provider';
-import {KalturaCuePointType, CuepointTypeMap, CuepointsConfig} from '../../types';
+import {KalturaCuePointType, CuepointTypeMap} from '../../types';
 import {
   PushNotificationPrivider,
   PushNotificationEventTypes,
@@ -9,7 +9,7 @@ import {
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData
 } from './push-notifications-provider';
-import {makeAssetUrl, sortArrayBy} from '../utils';
+import {makeAssetUrl, sortArrayBy, getKs} from '../utils';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -26,7 +26,7 @@ export class LiveProvider extends Provider {
   private _currentTimeLiveResolvePromise = () => {};
   private _currentTimeLivePromise: Promise<void>;
 
-  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap, private _config: CuepointsConfig) {
+  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
     this._pushNotification = new PushNotificationPrivider(this._player, this._logger);
     this._currentTimeLivePromise = this._makeCurrentTimeLiveReadyPromise();
@@ -130,11 +130,7 @@ export class LiveProvider extends Provider {
     const newThumbCue = {
       ...newThumb,
       ...this._makeCuePointStartEndTime(newThumb.createdAt),
-      assetUrl: makeAssetUrl(
-        this._player.provider.env.serviceUrl,
-        newThumb.assetId,
-        this._config.loadThumbnailWithKs ? this._player.config.session.ks : ''
-      )
+      assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, newThumb.assetId, getKs(this._player))
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);

@@ -142,7 +142,7 @@ describe('Check Live provider', () => {
           startTime: 1,
           createdAt: 96,
           endTime: Number.MAX_SAFE_INTEGER,
-          assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id/ks/test_ks'
+          assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id'
         }
       ];
       const playerResult = [
@@ -153,7 +153,7 @@ describe('Check Live provider', () => {
           metadata: {
             assetId: 'test_id',
             createdAt: 96,
-            assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id/ks/test_ks'
+            assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id'
           }
         }
       ];

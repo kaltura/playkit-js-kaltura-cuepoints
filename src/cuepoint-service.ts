@@ -3,7 +3,7 @@ import {Provider} from './providers/provider';
 import {VodProvider} from './providers/vod/vod-provider';
 import {LiveProvider} from './providers/live/live-provider';
 import {KalturaCuePoint} from './providers/vod/response-types';
-import {CuepointTypeMap, KalturaCuePointType, KalturaThumbCuePointSubType, CuepointsConfig} from './types';
+import {CuepointTypeMap, KalturaCuePointType, KalturaThumbCuePointSubType} from './types';
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 
@@ -27,7 +27,7 @@ export class CuepointService {
     return KalturaCuePoint.KalturaCuePointType;
   }
 
-  constructor(player: Player, eventManager: EventManager, logger: any, private _config: CuepointsConfig) {
+  constructor(player: Player, eventManager: EventManager, logger: any) {
     this._logger = logger;
     this._player = player;
     this._eventManager = eventManager;
@@ -60,9 +60,9 @@ export class CuepointService {
     }
 
     if (this._player.isLive()) {
-      this._provider = new LiveProvider(this._player, this._eventManager, this._logger, this._types, this._config);
+      this._provider = new LiveProvider(this._player, this._eventManager, this._logger, this._types);
     } else {
-      this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types, this._config);
+      this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types);
     }
   }
 

@@ -1,3 +1,5 @@
+import Player = KalturaPlayerTypes.Player;
+
 export function isEmptyObject(obj: Record<string, any>) {
   return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
@@ -16,4 +18,11 @@ export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondary
       ? a[primarySortKey] - b[primarySortKey] || a[secondarySortKey] - b[secondarySortKey]
       : a[primarySortKey] - b[primarySortKey];
   });
+}
+
+export function getKs(player: Player): string {
+  if (player.shouldAddKs && player.shouldAddKs() && player.config.session?.ks) {
+    return player.config.session.ks;
+  }
+  return '';
 }
