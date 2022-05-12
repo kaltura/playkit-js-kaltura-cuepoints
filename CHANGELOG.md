@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.4](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.3...v1.5.4) (2022-05-12)
+
+
+### Bug Fixes
+
+* **FEV-1249:** Kaltura CuePoints loads thumb assets always with KS ([#25](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/25)) ([dfcf45c](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/dfcf45c))
+* **FEV-1249:** Kaltura CuePoints loads thumb assets always with KS ([#26](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/26)) ([b11757a](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/b11757a))
+
+
+
 ### [1.5.3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.2...v1.5.3) (2022-05-04)
 
 
