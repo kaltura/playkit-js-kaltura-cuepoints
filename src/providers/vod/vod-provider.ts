@@ -8,8 +8,10 @@ import EventManager = KalturaPlayerTypes.EventManager;
 import {makeAssetUrl, sortArrayBy} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
+import {ThumbUrlLoader} from '../common/thumb-url-loader';
 
 export class VodProvider extends Provider {
+  private _baseThumbAssetUrl: string = '';
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
     this._fetchVodData();
@@ -29,6 +31,7 @@ export class VodProvider extends Provider {
     let requests: Array<ProviderRequest> = [];
     if (thumbSubTypesFilter) {
       requests.push({loader: ThumbLoader, params: {entryId: this._player.sources.id, subTypesFilter: thumbSubTypesFilter}});
+      requests.push({loader: ThumbUrlLoader, params: {thumbAssetId: '{1:result:objects:0:assetId}'}});
     }
 
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
@@ -46,6 +49,9 @@ export class VodProvider extends Provider {
           if (!data) {
             this._logger.warn("Provider cue points doRequest doesn't have data");
             return;
+          }
+          if (data.has(ThumbUrlLoader.id)) {
+            this._handleThumbAssetUrlResponse(data);
           }
           if (data.has(ThumbLoader.id)) {
             this._handleThumbResponse(data);
@@ -123,11 +129,15 @@ export class VodProvider extends Provider {
     }
   }
 
+  private _handleThumbAssetUrlResponse(data: Map<string, any>) {
+    const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
+    this._baseThumbAssetUrl = thumbAssetUrlLoader?.response;
+  }
   private _handleThumbResponse(data: Map<string, any>) {
     const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>) => {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
-          assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, thumbCuePoint.assetId, this._player.config.session.ks),
+          assetUrl: makeAssetUrl(this._baseThumbAssetUrl, thumbCuePoint.assetId),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
           startTime: thumbCuePoint.startTime / 1000,

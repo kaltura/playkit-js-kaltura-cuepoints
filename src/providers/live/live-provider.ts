@@ -25,6 +25,8 @@ export class LiveProvider extends Provider {
   private _seekDifference: number | null = 0;
   private _currentTimeLiveResolvePromise = () => {};
   private _currentTimeLivePromise: Promise<void>;
+  private _baseThumbAssetUrl: string = '';
+
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -130,7 +132,7 @@ export class LiveProvider extends Provider {
     const newThumbCue = {
       ...newThumb,
       ...this._makeCuePointStartEndTime(newThumb.createdAt),
-      assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, newThumb.assetId, this._player.config.session?.ks)
+      assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, newThumb.assetId)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
@@ -155,6 +157,9 @@ export class LiveProvider extends Provider {
 
   private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
     this._currentTimeLivePromise.then(() => {
+      if (!this._baseThumbAssetUrl){
+
+      }
       thumbs.forEach(thumb => this._prepareThumbCuePoints(thumb));
     });
   };

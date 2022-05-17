@@ -6,8 +6,13 @@ export function getDomainFromUrl(url: string) {
   return url.replace(/^(.*\/\/[^\/?#]*).*$/, '$1');
 }
 
-export function makeAssetUrl(serviceUrl: string, assetId: string, ks: string = '') {
-  return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}/ks/${ks}`;
+export function makeAssetUrl(baseThumbAssetUrl: string, assetId: string) {
+  let assetUrl = '';
+  // for some thumb cue points, assetId may be undefined from the API.
+  if (typeof assetId !== 'undefined') {
+    assetUrl = baseThumbAssetUrl.replace(/thumbAssetId\/([^\/]+)/, '/thumbAssetId/' + assetId);
+  }
+  return assetUrl;
 }
 
 export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondarySortKey?: string) {
