@@ -11,7 +11,6 @@ import {QuizQuestionLoader} from './quiz-question-loader';
 import {ThumbUrlLoader} from '../common/thumb-url-loader';
 
 export class VodProvider extends Provider {
-  private _baseThumbAssetUrl: string = '';
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
     this._fetchVodData();
@@ -50,10 +49,7 @@ export class VodProvider extends Provider {
             this._logger.warn("Provider cue points doRequest doesn't have data");
             return;
           }
-          if (data.has(ThumbUrlLoader.id)) {
-            this._handleThumbAssetUrlResponse(data);
-          }
-          if (data.has(ThumbLoader.id)) {
+          if (data.has(ThumbUrlLoader.id) && data.has(ThumbLoader.id)) {
             this._handleThumbResponse(data);
           }
           if (data.has(ViewChangeLoader.id)) {
@@ -129,15 +125,13 @@ export class VodProvider extends Provider {
     }
   }
 
-  private _handleThumbAssetUrlResponse(data: Map<string, any>) {
-    const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
-    this._baseThumbAssetUrl = thumbAssetUrlLoader?.response;
-  }
   private _handleThumbResponse(data: Map<string, any>) {
+    const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
+    const baseThumbAssetUrl = thumbAssetUrlLoader?.response;
     const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>) => {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
-          assetUrl: makeAssetUrl(this._baseThumbAssetUrl, thumbCuePoint.assetId),
+          assetUrl: makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
           startTime: thumbCuePoint.startTime / 1000,

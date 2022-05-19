@@ -10,6 +10,7 @@ import {
   ThumbPushNotificationData
 } from './push-notifications-provider';
 import {makeAssetUrl, sortArrayBy} from '../utils';
+import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -26,12 +27,15 @@ export class LiveProvider extends Provider {
   private _currentTimeLiveResolvePromise = () => {};
   private _currentTimeLivePromise: Promise<void>;
   private _baseThumbAssetUrl: string = '';
-
+  private _thumbUrlLoaderResolvePromise = () => {};
+  private _thumbUrlLoaderPromise: Promise<void>;
+  private _thumbUrlIsLoaderActive = false;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
     this._pushNotification = new PushNotificationPrivider(this._player, this._logger);
     this._currentTimeLivePromise = this._makeCurrentTimeLiveReadyPromise();
+    this._thumbUrlLoaderPromise = this._makeThumbUrlLoaderResolvePromise();
     this._pushNotification.init();
     this._constructPushNotificationListener();
     this._pushNotification.registerToPushServer(this._player.sources.id, types, this._handleConnection, this._handleConnectionError);
@@ -41,6 +45,12 @@ export class LiveProvider extends Provider {
   private _makeCurrentTimeLiveReadyPromise = () => {
     return new Promise<void>(res => {
       this._currentTimeLiveResolvePromise = res;
+    });
+  };
+
+  private _makeThumbUrlLoaderResolvePromise = () => {
+    return new Promise<void>(res => {
+      this._thumbUrlLoaderResolvePromise = res;
     });
   };
 
@@ -132,7 +142,7 @@ export class LiveProvider extends Provider {
     const newThumbCue = {
       ...newThumb,
       ...this._makeCuePointStartEndTime(newThumb.createdAt),
-      assetUrl: makeAssetUrl(this._player.provider.env.serviceUrl, newThumb.assetId)
+      assetUrl: makeAssetUrl(this._baseThumbAssetUrl, newThumb.assetId)
     };
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
@@ -156,10 +166,27 @@ export class LiveProvider extends Provider {
   };
 
   private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
-    this._currentTimeLivePromise.then(() => {
-      if (!this._baseThumbAssetUrl){
+    if (!(this._baseThumbAssetUrl || this._thumbUrlIsLoaderActive)) {
+      // Fetch and save baseThumbAssetUrl for thumbs
+      this._thumbUrlIsLoaderActive = true;
+      this._player.provider
+        .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId: thumbs[0]?.assetId}}])
+        .then((data: Map<string, any>) => {
+          if (data.has(ThumbUrlLoader.id)) {
+            const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
+            this._baseThumbAssetUrl = thumbAssetUrlLoader?.response;
+            this._thumbUrlLoaderResolvePromise();
+          }
+        })
+        .catch((e: any) => {
+          this._logger.warn("can't get baseThumbAssetUrl");
+        })
+        .finally(() => {
+          this._thumbUrlIsLoaderActive = false;
+        });
+    }
 
-      }
+    Promise.all([this._currentTimeLivePromise, this._thumbUrlLoaderPromise]).then(() => {
       thumbs.forEach(thumb => this._prepareThumbCuePoints(thumb));
     });
   };
@@ -214,5 +241,6 @@ export class LiveProvider extends Provider {
     this._pushNotification.reset();
     this._removePushNotificationListener();
     this._currentTimeLivePromise = this._makeCurrentTimeLiveReadyPromise();
+    this._thumbUrlLoaderPromise = this._makeThumbUrlLoaderResolvePromise();
   }
 }
