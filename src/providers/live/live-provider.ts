@@ -166,7 +166,7 @@ export class LiveProvider extends Provider {
   };
 
   private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
-    if (!(this._baseThumbAssetUrl || this._thumbUrlIsLoaderActive)) {
+    if (!this._baseThumbAssetUrl && !this._thumbUrlIsLoaderActive) {
       // Fetch and save baseThumbAssetUrl for thumbs
       this._thumbUrlIsLoaderActive = true;
       this._player.provider
