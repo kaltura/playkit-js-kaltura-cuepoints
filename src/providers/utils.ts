@@ -1,5 +1,3 @@
-import Player = KalturaPlayerTypes.Player;
-
 export function isEmptyObject(obj: Record<string, any>) {
   return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
@@ -8,8 +6,13 @@ export function getDomainFromUrl(url: string) {
   return url.replace(/^(.*\/\/[^\/?#]*).*$/, '$1');
 }
 
-export function makeAssetUrl(serviceUrl: string, assetId: string, ks: string = '') {
-  return `${serviceUrl}/index.php/service/thumbAsset/action/serve/thumbAssetId/${assetId}${ks ? `/ks/${ks}` : ''}`;
+export function makeAssetUrl(baseThumbAssetUrl: string, assetId: string) {
+  let assetUrl = '';
+  // for some thumb cue points, assetId may be undefined from the API.
+  if (typeof assetId !== 'undefined') {
+    assetUrl = baseThumbAssetUrl.replace(/thumbAssetId\/([^\/]+)/, '/thumbAssetId/' + assetId);
+  }
+  return assetUrl;
 }
 
 export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondarySortKey?: string) {
@@ -18,11 +21,4 @@ export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondary
       ? a[primarySortKey] - b[primarySortKey] || a[secondarySortKey] - b[secondarySortKey]
       : a[primarySortKey] - b[primarySortKey];
   });
-}
-
-export function getKs(player: Player): string {
-  if (player.shouldAddKs && player.shouldAddKs() && player.config.session?.ks) {
-    return player.config.session.ks;
-  }
-  return '';
 }
