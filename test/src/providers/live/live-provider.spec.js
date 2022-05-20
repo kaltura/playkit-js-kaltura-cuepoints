@@ -130,30 +130,31 @@ describe('Check Live provider', () => {
         cuePointManager: {addCuePoints}
       };
       liveProvider._currentTimeLive = 100;
+      liveProvider._baseThumbAssetUrl = "http://test.te/thumbAssetId/1_initialId/test_ks"
       liveProvider._prepareThumbCuePoints({
-        id: '1',
+        id: '1_test',
         assetId: 'test_id',
         createdAt: 96
       });
       const result = [
         {
-          id: '1',
+          id: '1_test',
           assetId: 'test_id',
           startTime: 1,
           createdAt: 96,
           endTime: Number.MAX_SAFE_INTEGER,
-          assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id/ks/test_ks'
+          assetUrl: 'http://test.te//thumbAssetId/test_id/test_ks'
         }
       ];
       const playerResult = [
         {
-          id: '1',
+          id: '1_test',
           startTime: 1,
           endTime: Number.MAX_SAFE_INTEGER,
           metadata: {
             assetId: 'test_id',
             createdAt: 96,
-            assetUrl: 'test_url/index.php/service/thumbAsset/action/serve/thumbAssetId/test_id/ks/test_ks'
+            assetUrl: 'http://test.te//thumbAssetId/test_id/test_ks'
           }
         }
       ];

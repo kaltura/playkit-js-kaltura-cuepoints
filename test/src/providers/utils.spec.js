@@ -8,8 +8,8 @@ describe('Test provider utils', () => {
   it('should get domain from URL', () => {
     expect(getDomainFromUrl('http://www.test.te/test-page/test')).to.eq('http://www.test.te');
   });
-  it('should make asset URL', () => {
-    expect(makeAssetUrl('http://test.te', 111, 222)).to.eq('http://test.te/index.php/service/thumbAsset/action/serve/thumbAssetId/111/ks/222');
+  it('should make asset URL with KS', () => {
+    expect(makeAssetUrl('http://test.te/thumbAssetId/1_k0rlevfc/test_ks', "1_test")).to.eq('http://test.te//thumbAssetId/1_test/test_ks');
   });
   it('should sort array by property', () => {
     expect(sortArrayBy([{a: 2}, {a: 0.5}, {a: 1}], 'a')).to.eql([{a: 0.5}, {a: 1}, {a: 2}]);
