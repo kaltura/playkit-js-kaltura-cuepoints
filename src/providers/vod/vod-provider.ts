@@ -30,7 +30,6 @@ export class VodProvider extends Provider {
     let requests: Array<ProviderRequest> = [];
     if (thumbSubTypesFilter) {
       requests.push({loader: ThumbLoader, params: {entryId: this._player.sources.id, subTypesFilter: thumbSubTypesFilter}});
-      requests.push({loader: ThumbUrlLoader, params: {thumbAssetId: '{1:result:objects:0:assetId}'}});
     }
 
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
@@ -49,7 +48,7 @@ export class VodProvider extends Provider {
             this._logger.warn("Provider cue points doRequest doesn't have data");
             return;
           }
-          if (data.has(ThumbUrlLoader.id) && data.has(ThumbLoader.id)) {
+          if (data.has(ThumbLoader.id)) {
             this._handleThumbResponse(data);
           }
           if (data.has(ViewChangeLoader.id)) {
@@ -126,9 +125,7 @@ export class VodProvider extends Provider {
   }
 
   private _handleThumbResponse(data: Map<string, any>) {
-    const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
-    const baseThumbAssetUrl = thumbAssetUrlLoader?.response;
-    const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>) => {
+    const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>, baseThumbAssetUrl: string) => {
       return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
           assetUrl: makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId),
@@ -143,10 +140,29 @@ export class VodProvider extends Provider {
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData thumb response successful with ${thumbCuePoints.length} cue points`);
     if (thumbCuePoints.length) {
-      let cuePoints = createCuePointList(thumbCuePoints);
-      cuePoints = sortArrayBy(cuePoints, 'startTime');
-      cuePoints = this._fixCuePointsEndTime(cuePoints);
-      this._addCuePointToPlayer(cuePoints);
+      const thumbAssetId = thumbCuePoints.find(thumbCuePoint => thumbCuePoint.assetId)?.assetId;
+      if (thumbAssetId) {
+        // TODO: doRequest should get parameter 'requestsMustSucceed' once core implement the changes 
+        this._player.provider
+          .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId}}])
+          .then((data: Map<string, any>) => {
+            if (!data) {
+              this._logger.warn("ThumbUrlLoader doRequest doesn't have data");
+              return;
+            }
+            if (data.has(ThumbUrlLoader.id)) {
+              const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
+              const baseThumbAssetUrl = thumbAssetUrlLoader?.response;
+              let cuePoints = createCuePointList(thumbCuePoints, baseThumbAssetUrl);
+              cuePoints = sortArrayBy(cuePoints, 'startTime');
+              cuePoints = this._fixCuePointsEndTime(cuePoints);
+              this._addCuePointToPlayer(cuePoints);
+            }
+          })
+          .catch((e: any) => {
+            this._logger.warn('ThumbUrlLoader doRequest was rejected');
+          });
+      }
     }
   }
 
