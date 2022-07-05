@@ -15,6 +15,12 @@ export function makeAssetUrl(baseThumbAssetUrl: string, assetId: string) {
   return assetUrl;
 }
 
+export function makeChapterThumb(serviceUrl: string, partnerId: string = '', entryId: string, startTime: number, ks: string = '') {
+  return `${serviceUrl.split('api_v3')[0]}/p/${partnerId}/sp/${partnerId}00/thumbnail/entry_id/${entryId}/width/400/vid_sec/${startTime}${
+    ks ? `/ks/${ks}` : ''
+  }`;
+}
+
 export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondarySortKey?: string) {
   return cuePoints.sort(function (a: any, b: any) {
     return secondarySortKey

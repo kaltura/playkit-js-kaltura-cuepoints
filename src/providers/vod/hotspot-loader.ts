@@ -1,17 +1,17 @@
 import ILoader = KalturaPlayerTypes.ILoader;
-import {KalturaCuePointListResponse, KalturaThumbCuePoint, KalturaCuePoint} from './response-types';
+import {KalturaCuePointListResponse, KalturaHotspotCuePoint, KalturaCuePoint} from './response-types';
 
 const {RequestBuilder} = KalturaPlayer.providers;
-interface KalturaThumbCuePointsResponse {
-  thumbCuePoints: Array<KalturaThumbCuePoint>;
+interface KalturaHotSpotCuePointsResponse {
+  hotspotCuePoints: Array<KalturaHotspotCuePoint>;
 }
-export class ThumbLoader implements ILoader {
+export class HotspotLoader implements ILoader {
   _entryId: string = '';
   _requests: any[] = [];
-  _response: KalturaThumbCuePointsResponse = {thumbCuePoints: []};
+  _response: KalturaHotSpotCuePointsResponse = {hotspotCuePoints: []};
 
   static get id(): string {
-    return 'thumb';
+    return 'hotspot';
   }
 
   /**
@@ -28,14 +28,13 @@ export class ThumbLoader implements ILoader {
     request.action = 'list';
     request.params = {
       filter: {
-        objectType: 'KalturaThumbCuePointFilter',
+        objectType: 'KalturaCuePointFilter',
         entryIdEqual: this._entryId,
-        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.THUMB,
-        subTypeIn: params.subTypesFilter
+        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.ANNOTATION
       },
       responseProfile: {
         type: INCLUDE_FIELDS,
-        fields: 'id, assetId, startTime, cuePointType, title, description, subType'
+        fields: 'id, startTime, endTime, cuePointType, partnerData, text, tags'
       }
     };
     this.requests.push(request);
@@ -50,9 +49,9 @@ export class ThumbLoader implements ILoader {
   }
 
   set response(response: any) {
-    const thumbCuePointList = new KalturaCuePointListResponse<KalturaThumbCuePoint>(response[0]?.data, KalturaThumbCuePoint);
-    if (thumbCuePointList.totalCount) {
-      this._response.thumbCuePoints = thumbCuePointList.cuePoints;
+    const hotspotCuePointList = new KalturaCuePointListResponse<KalturaHotspotCuePoint>(response[0]?.data, KalturaHotspotCuePoint);
+    if (hotspotCuePointList.totalCount) {
+      this._response.hotspotCuePoints = hotspotCuePointList.cuePoints;
     }
   }
 
