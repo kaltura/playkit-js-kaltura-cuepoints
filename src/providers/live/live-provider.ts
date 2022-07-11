@@ -131,13 +131,13 @@ export class LiveProvider extends Provider {
     });
   }
 
-  private _makeCuePointStartEndTime = (cuePointCreatedAt: number) => {
+  private _makeCuePointStartEndTime = (cuePointCreatedAt: number, endTime = Number.MAX_SAFE_INTEGER) => {
     let startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
     if (startTime < 0) {
       // TextTrack in Safari doesn't allow add new cue-points with startTime less then 0
       startTime = this._player.currentTime;
     }
-    return {startTime, endTime: Number.MAX_SAFE_INTEGER};
+    return {startTime, endTime};
   };
 
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
@@ -170,7 +170,7 @@ export class LiveProvider extends Provider {
   private _preparePublicQnACuePoints = (message: QnAPushNotificationData) => {
     const qnaCuePoint = {
       ...message,
-      endTime: message.endTime || Number.MAX_SAFE_INTEGER
+      ...this._makeCuePointStartEndTime(message.createdAt, message.endTime)
     };
     this._addCuePointToPlayer([qnaCuePoint]);
   };
