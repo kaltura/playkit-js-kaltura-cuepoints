@@ -1,5 +1,6 @@
 import ILoader = KalturaPlayerTypes.ILoader;
 import {KalturaCuePointListResponse, KalturaHotspotCuePoint, KalturaCuePoint} from './response-types';
+import {CuePointTags} from '../../types';
 
 const {RequestBuilder} = KalturaPlayer.providers;
 interface KalturaHotSpotCuePointsResponse {
@@ -30,7 +31,8 @@ export class HotspotLoader implements ILoader {
       filter: {
         objectType: 'KalturaCuePointFilter',
         entryIdEqual: this._entryId,
-        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.ANNOTATION
+        cuePointTypeEqual: KalturaCuePoint.KalturaCuePointType.ANNOTATION,
+        tagsLike: CuePointTags.HOTSPOT
       },
       responseProfile: {
         type: INCLUDE_FIELDS,

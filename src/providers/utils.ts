@@ -16,9 +16,9 @@ export function makeAssetUrl(baseThumbAssetUrl: string, assetId: string) {
 }
 
 export function makeChapterThumb(serviceUrl: string, partnerId: string = '', entryId: string, startTime: number, ks: string = '') {
-  return `${serviceUrl.split('api_v3')[0]}/p/${partnerId}/sp/${partnerId}00/thumbnail/entry_id/${entryId}/width/400/vid_sec/${startTime}${
-    ks ? `/ks/${ks}` : ''
-  }`;
+  return `${serviceUrl.split('api_v3')[0]}/p/${partnerId}/sp/${partnerId}00/thumbnail/entry_id/${entryId}/width/400/vid_sec/${(
+    startTime / 1000
+  ).toFixed(2)}${ks ? `/ks/${ks}` : ''}`;
 }
 
 export function sortArrayBy<T>(cuePoints: T[], primarySortKey: string, secondarySortKey?: string) {

@@ -5,10 +5,15 @@ export enum KalturaThumbCuePointSubType {
   CHAPTER = 2
 }
 export enum KalturaCuePointType {
-  // AOA = 'aoa',
+  QNA = 'qna',
   QUIZ = 'quiz',
   SLIDE = 'slide',
   VIEW_CHANGE = 'viewchange',
   CHAPTER = 'chapter',
   HOTSPOT = 'hotspot'
+}
+
+export enum CuePointTags {
+  ANSWERONAIR = 'qna',
+  HOTSPOT = 'hotspots'
 }

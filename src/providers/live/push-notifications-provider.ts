@@ -28,6 +28,26 @@ export interface SlideViewChangePushNotificationData extends PushNotificationDat
   code: string;
 }
 
+export interface QnAPushNotificationData extends PushNotificationData {
+  endTime?: number;
+  relatedObjects: {
+    QandA_ResponseProfile: {
+      objectType: 'KalturaMetadataListResponse';
+      totalCount: number;
+      objects: Array<KalturaMetadata>;
+    };
+  };
+  text: string;
+}
+
+export interface KalturaMetadata {
+  createdAt: number;
+  id: number;
+  objectId: string;
+  objectType: 'KalturaMetadata';
+  xml: string;
+}
+
 export enum PushNotificationEventTypes {
   PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS',
   PushNotificationsError = 'PUSH_NOTIFICATIONS_ERROR',
@@ -36,7 +56,7 @@ export enum PushNotificationEventTypes {
 }
 export interface PublicNotificationsEvent {
   type: PushNotificationEventTypes.PublicNotifications;
-  messages: PushNotificationData[]; // TODO: add interface
+  messages: QnAPushNotificationData[];
 }
 export interface NotificationsErrorEvent {
   type: PushNotificationEventTypes.PushNotificationsError;
@@ -103,11 +123,9 @@ export class PushNotificationPrivider {
     if (types.has(KalturaCuePointType.VIEW_CHANGE)) {
       registrationConfigs.push(this._createSlideViewChangeRegistration(entryId));
     }
-
-    // Placeholder for AOA cue-points
-    // if (types.has(KalturaCuePointType.AOA)) {
-    //   registrationConfigs.push(this._createPublicRegistration(entryId));
-    // }
+    if (types.has(KalturaCuePointType.QNA)) {
+      registrationConfigs.push(this._createPublicRegistration(entryId));
+    }
 
     this._pushServerInstance
       .registerNotifications({

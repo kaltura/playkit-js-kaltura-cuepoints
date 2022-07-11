@@ -44,6 +44,8 @@ export class VodProvider extends Provider {
       requests.push({loader: HotspotLoader, params: {entryId: this._player.sources.id}});
     }
 
+    // if (this._types.has(KalturaCuePointType.AOA)) {} // AOA placeholder
+
     if (requests.length) {
       this._player.provider
         .doRequest(requests)
@@ -132,8 +134,8 @@ export class VodProvider extends Provider {
   }
 
   private _handleThumbResponse(data: Map<string, any>) {
-    const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>, assetUrlCreator: (thumbCuePoint: KalturaThumbCuePoint) => string) => {
-      return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
+    const addCuePoins = (thumbCuePoints: Array<KalturaThumbCuePoint>, assetUrlCreator: (thumbCuePoint: KalturaThumbCuePoint) => string) => {
+      let cuePoints = thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
           assetUrl: assetUrlCreator(thumbCuePoint),
           id: thumbCuePoint.id,
@@ -145,6 +147,9 @@ export class VodProvider extends Provider {
           endTime: Number.MAX_SAFE_INTEGER
         };
       });
+      cuePoints = sortArrayBy(cuePoints, 'startTime');
+      cuePoints = this._fixCuePointsEndTime(cuePoints);
+      this._addCuePointToPlayer(cuePoints);
     };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
@@ -177,10 +182,7 @@ export class VodProvider extends Provider {
               const assetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
                 return makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId);
               };
-              let cuePoints = createCuePointList(slideCuePoints, assetUrlCreator);
-              cuePoints = sortArrayBy(cuePoints, 'startTime');
-              cuePoints = this._fixCuePointsEndTime(cuePoints);
-              this._addCuePointToPlayer(cuePoints);
+              addCuePoins(slideCuePoints, assetUrlCreator);
             }
           })
           .catch((e: any) => {
@@ -192,9 +194,7 @@ export class VodProvider extends Provider {
           const {provider} = this._player.config;
           return makeChapterThumb(provider?.env?.serviceUrl, provider?.partnerId, this._player.sources.id, thumbCuePoint.startTime, provider?.ks);
         };
-        let cuePoints = createCuePointList(chapterCuePoints, assetUrlCreator);
-        cuePoints = sortArrayBy(cuePoints, 'startTime');
-        this._addCuePointToPlayer(cuePoints);
+        addCuePoins(chapterCuePoints, assetUrlCreator);
       }
     }
   }
@@ -229,7 +229,8 @@ export class VodProvider extends Provider {
           text: hotspotCuePoint.text,
           partnerData: hotspotCuePoint.partnerData,
           startTime: hotspotCuePoint.startTime / 1000,
-          endTime: hotspotCuePoint.endTime || Number.MAX_SAFE_INTEGER
+          endTime: hotspotCuePoint.endTime || Number.MAX_SAFE_INTEGER,
+          tags: hotspotCuePoint.tags
         };
       });
     };
