@@ -41,12 +41,6 @@ export interface APIErrorResponse extends RegisterRequestResponse {
   message: string;
 }
 
-export interface ClientApiOptions {
-  ks: string;
-  serviceUrl: string;
-  clientTag: string;
-}
-
 export function isAPINotificationResponse(response: APIResponse): response is APINotificationResponse {
   return response.objectType === 'KalturaPushNotificationData';
 }

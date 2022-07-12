@@ -1,13 +1,14 @@
 import {Provider, ProviderRequest} from '../provider';
 import {ThumbLoader} from './thumb-loader';
-import {KalturaQuizQuestionCuePoint, KalturaThumbCuePoint, KalturaCodeCuePoint} from './response-types';
+import {KalturaQuizQuestionCuePoint, KalturaThumbCuePoint, KalturaCodeCuePoint, KalturaHotspotCuePoint} from './response-types';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl, sortArrayBy} from '../utils';
+import {makeAssetUrl, makeChapterThumb, sortArrayBy} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
+import {HotspotLoader} from './hotspot-loader';
 import {ThumbUrlLoader} from '../common/thumb-url-loader';
 
 export class VodProvider extends Provider {
@@ -22,10 +23,9 @@ export class VodProvider extends Provider {
       thumbSubTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
     }
 
-    // preparation for chapters
-    // if (this._types.has(KalturaCuePoints.KalturaCuePointType.CHAPTER)) {
-    //   subTypesFilter = `${subTypesFilter}${KalturaCuePoints.KalturaThumbCuePointSubType.CHAPTER},`;
-    // }
+    if (this._types.has(KalturaCuePointType.CHAPTER)) {
+      thumbSubTypesFilter += `${KalturaThumbCuePointSubType.CHAPTER},`;
+    }
 
     let requests: Array<ProviderRequest> = [];
     if (thumbSubTypesFilter) {
@@ -39,6 +39,12 @@ export class VodProvider extends Provider {
     if (this._types.has(KalturaCuePointType.QUIZ)) {
       requests.push({loader: QuizQuestionLoader, params: {entryId: this._player.sources.id}});
     }
+
+    if (this._types.has(KalturaCuePointType.HOTSPOT)) {
+      requests.push({loader: HotspotLoader, params: {entryId: this._player.sources.id}});
+    }
+
+    // if (this._types.has(KalturaCuePointType.AOA)) {} // AOA placeholder
 
     if (requests.length) {
       this._player.provider
@@ -56,6 +62,9 @@ export class VodProvider extends Provider {
           }
           if (data.has(QuizQuestionLoader.id)) {
             this._handleQuizQustionResponse(data);
+          }
+          if (data.has(HotspotLoader.id)) {
+            this._handleHotspotResponse(data);
           }
         })
         .catch((e: any) => {
@@ -125,26 +134,43 @@ export class VodProvider extends Provider {
   }
 
   private _handleThumbResponse(data: Map<string, any>) {
-    const createCuePointList = (thumbCuePoints: Array<KalturaThumbCuePoint>, baseThumbAssetUrl: string) => {
-      return thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
+    const addCuePoins = (thumbCuePoints: Array<KalturaThumbCuePoint>, assetUrlCreator: (thumbCuePoint: KalturaThumbCuePoint) => string) => {
+      let cuePoints = thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
-          assetUrl: makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId),
+          assetUrl: assetUrlCreator(thumbCuePoint),
           id: thumbCuePoint.id,
           cuePointType: thumbCuePoint.cuePointType,
+          title: thumbCuePoint.title,
+          description: thumbCuePoint.description,
+          subType: thumbCuePoint.subType,
           startTime: thumbCuePoint.startTime / 1000,
           endTime: Number.MAX_SAFE_INTEGER
         };
       });
+      cuePoints = sortArrayBy(cuePoints, 'startTime');
+      cuePoints = this._fixCuePointsEndTime(cuePoints);
+      this._addCuePointToPlayer(cuePoints);
     };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
     this._logger.debug(`_fetchVodData thumb response successful with ${thumbCuePoints.length} cue points`);
     if (thumbCuePoints.length) {
-      const thumbAssetId = thumbCuePoints.find(thumbCuePoint => thumbCuePoint.assetId)?.assetId;
-      if (thumbAssetId) {
-        // TODO: doRequest should get parameter 'requestsMustSucceed' once core implement the changes 
+      const {slideCuePoints, chapterCuePoints} = thumbCuePoints.reduce(
+        (acc, thumbCuePoint) => {
+          if (thumbCuePoint.subType === KalturaThumbCuePointSubType.SLIDE) {
+            return {...acc, slideCuePoints: [...acc.slideCuePoints, thumbCuePoint]};
+          }
+          if (thumbCuePoint.subType === KalturaThumbCuePointSubType.CHAPTER) {
+            return {...acc, chapterCuePoints: [...acc.chapterCuePoints, thumbCuePoint]};
+          }
+          return acc;
+        },
+        {slideCuePoints: [], chapterCuePoints: []} as {slideCuePoints: Array<KalturaThumbCuePoint>; chapterCuePoints: Array<KalturaThumbCuePoint>}
+      );
+      if (slideCuePoints.length && slideCuePoints[0]?.assetId) {
+        // TODO: doRequest should get parameter 'requestsMustSucceed' once core implement the changes
         this._player.provider
-          .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId}}])
+          .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId: slideCuePoints[0].assetId}}])
           .then((data: Map<string, any>) => {
             if (!data) {
               this._logger.warn("ThumbUrlLoader doRequest doesn't have data");
@@ -153,15 +179,22 @@ export class VodProvider extends Provider {
             if (data.has(ThumbUrlLoader.id)) {
               const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
               const baseThumbAssetUrl = thumbAssetUrlLoader?.response;
-              let cuePoints = createCuePointList(thumbCuePoints, baseThumbAssetUrl);
-              cuePoints = sortArrayBy(cuePoints, 'startTime');
-              cuePoints = this._fixCuePointsEndTime(cuePoints);
-              this._addCuePointToPlayer(cuePoints);
+              const assetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
+                return makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId);
+              };
+              addCuePoins(slideCuePoints, assetUrlCreator);
             }
           })
           .catch((e: any) => {
             this._logger.warn('ThumbUrlLoader doRequest was rejected');
           });
+      }
+      if (chapterCuePoints.length) {
+        const assetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
+          const {provider} = this._player.config;
+          return makeChapterThumb(provider?.env?.serviceUrl, provider?.partnerId, this._player.sources.id, thumbCuePoint.startTime, provider?.ks);
+        };
+        addCuePoins(chapterCuePoints, assetUrlCreator);
       }
     }
   }
@@ -182,6 +215,30 @@ export class VodProvider extends Provider {
     this._logger.debug(`_fetchVodData quiz question response successful with ${quizQuestionCuePoints.length} cue points`);
     if (quizQuestionCuePoints.length) {
       let cuePoints = createCuePointList(quizQuestionCuePoints);
+      cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
+      this._addCuePointToPlayer(cuePoints);
+    }
+  }
+
+  private _handleHotspotResponse(data: Map<string, any>) {
+    const createCuePointList = (hotspotCuePoints: Array<KalturaHotspotCuePoint>) => {
+      return hotspotCuePoints.map((hotspotCuePoint: KalturaHotspotCuePoint) => {
+        return {
+          id: hotspotCuePoint.id,
+          cuePointType: hotspotCuePoint.cuePointType,
+          text: hotspotCuePoint.text,
+          partnerData: hotspotCuePoint.partnerData,
+          startTime: hotspotCuePoint.startTime / 1000,
+          endTime: hotspotCuePoint.endTime || Number.MAX_SAFE_INTEGER,
+          tags: hotspotCuePoint.tags
+        };
+      });
+    };
+    const hotspotCuePointsLoader: HotspotLoader = data.get(HotspotLoader.id);
+    const hotspotCuePoints: Array<KalturaHotspotCuePoint> = hotspotCuePointsLoader?.response.hotspotCuePoints || [];
+    this._logger.debug(`_fetchVodData hotspots response successful with ${hotspotCuePoints.length} cue points`);
+    if (hotspotCuePoints.length) {
+      let cuePoints = createCuePointList(hotspotCuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
       this._addCuePointToPlayer(cuePoints);
     }

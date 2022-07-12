@@ -1,4 +1,5 @@
 import {KalturaCuePoint} from './kaltura-cue-point';
+import {KalturaThumbCuePointSubType} from '../../../types';
 
 export class KalturaThumbCuePoint extends KalturaCuePoint {
   /**
@@ -22,13 +23,13 @@ export class KalturaThumbCuePoint extends KalturaCuePoint {
    * @member - The sub type of the ThumbCuePoint
    * @type {number}
    */
-  subtype: number;
+  subType: KalturaThumbCuePointSubType;
 
   constructor(thumbCuePoint: any) {
     super(thumbCuePoint);
     this.assetId = thumbCuePoint.assetId;
     this.description = thumbCuePoint.description;
     this.title = thumbCuePoint.title;
-    this.subtype = thumbCuePoint.subtype;
+    this.subType = thumbCuePoint.subType;
   }
 }
