@@ -5,7 +5,8 @@ export class KalturaCuePoint {
     CODE: 'codeCuePoint.Code',
     EVENT: 'eventCuePoint.Event',
     QUIZ_QUESTION: 'quiz.QUIZ_QUESTION',
-    THUMB: 'thumbCuePoint.Thumb'
+    THUMB: 'thumbCuePoint.Thumb',
+    CAPTION: 'kalturaCaption'
   };
 
   static KalturaCuePointStatus: {[type: string]: number} = {

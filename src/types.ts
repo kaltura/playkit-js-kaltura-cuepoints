@@ -10,7 +10,8 @@ export enum KalturaCuePointType {
   SLIDE = 'slide',
   VIEW_CHANGE = 'viewchange',
   CHAPTER = 'chapter',
-  HOTSPOT = 'hotspot'
+  HOTSPOT = 'hotspot',
+  CAPTION = 'caption'
 }
 
 export enum CuePointTags {

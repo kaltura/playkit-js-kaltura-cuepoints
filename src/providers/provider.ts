@@ -1,7 +1,7 @@
+import {CuepointTypeMap} from '../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import ILoader = KalturaPlayerTypes.ILoader;
 
 export interface ProviderRequest {
   loader: Function;
@@ -13,14 +13,14 @@ export class Provider {
   protected _eventManager: EventManager;
   protected _logger: Logger;
 
-  constructor(player: Player, eventManager: EventManager, logger: Logger, types: Map<string, boolean>) {
+  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     this._types = types;
     this._logger = logger;
     this._player = player;
     this._eventManager = eventManager;
     this._logger = logger;
   }
-  
+
   protected _addCuePointToPlayer(cuePoints: any[]) {
     const playerCuePoints = cuePoints.map(cuePoint => {
       const {startTime, endTime, id, ...metadata} = cuePoint;
