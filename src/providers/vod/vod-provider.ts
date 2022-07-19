@@ -146,7 +146,6 @@ export class VodProvider extends Provider {
             });
             // filter empty captions
             cuePoints = cuePoints.filter(cue => cue.text);
-            cuePoints = sortArrayBy(cuePoints, 'startTime');
             this._addCuePointToPlayer(cuePoints);
             // mark captions as fetched
             this._fetchedCaptionIndexes.push(captionSourceIndex);
@@ -240,7 +239,8 @@ export class VodProvider extends Provider {
         },
         {slideCuePoints: [], chapterCuePoints: []} as {slideCuePoints: Array<KalturaThumbCuePoint>; chapterCuePoints: Array<KalturaThumbCuePoint>}
       );
-
+      // Find and use first thumb asset ID to get baseAssetUrl from BE service.
+      // Then for each thumb assetId gonna be replaced in baseAssetUrl to avoid BE calls for any thumb asset.
       const firstAssetId = thumbCuePoints.find(thumb => thumb.assetId)?.assetId;
       if (firstAssetId) {
         // TODO: doRequest should get parameter 'requestsMustSucceed' once core implement the changes
@@ -261,8 +261,10 @@ export class VodProvider extends Provider {
                 // if chapters has assetId - make assetUrl from baseAssetUrl otherwise - generate from media by startTime
                 const chapterAssetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
                   if (thumbCuePoint.assetId) {
+                    // AssetUrl gonna be made by replacing assetId in baseAssetUrl
                     return replaceAssetUrl(baseThumbAssetUrl)(thumbCuePoint);
                   }
+                  // AssetUrl gonna be made by BE service (snapshot from current media by time)
                   return generageAssetUrl(thumbCuePoint);
                 };
                 addCuePoins(chapterCuePoints, chapterAssetUrlCreator);
