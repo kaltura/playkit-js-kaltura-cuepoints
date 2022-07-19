@@ -1,23 +1,34 @@
 import {Provider, ProviderRequest} from '../provider';
 import {ThumbLoader} from './thumb-loader';
-import {KalturaQuizQuestionCuePoint, KalturaThumbCuePoint, KalturaCodeCuePoint, KalturaHotspotCuePoint} from './response-types';
+import {KalturaQuizQuestionCuePoint, KalturaThumbCuePoint, KalturaCodeCuePoint, KalturaHotspotCuePoint, KalturaCaption} from './response-types';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {makeAssetUrl, makeChapterThumb, sortArrayBy} from '../utils';
+import KalturaCaptionSource = KalturaPlayerTypes.KalturaCaptionSource;
+import {makeAssetUrl, generateThumb, sortArrayBy} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
 import {HotspotLoader} from './hotspot-loader';
 import {ThumbUrlLoader} from '../common/thumb-url-loader';
+import {CaptionLoader} from './caption-loader';
 
 export class VodProvider extends Provider {
+  private _fetchedCaptionIndexes: Array<number> = [];
+
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
+    this._addListeners();
     this._fetchVodData();
   }
 
-  _fetchVodData() {
+  private _addListeners() {
+    if (this._types.has(KalturaCuePointType.CAPTION)) {
+      this._eventManager.listen(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
+    }
+  }
+
+  private _fetchVodData() {
     let thumbSubTypesFilter = '';
     if (this._types.has(KalturaCuePointType.SLIDE)) {
       thumbSubTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
@@ -92,6 +103,60 @@ export class VodProvider extends Provider {
     });
   }
 
+  private _handleLanguageChange = () => {
+    const allTextTracks = this._player.getTracks(this._player.Track.TEXT) || [];
+    const activeTextTrack = allTextTracks.find(track => track.active);
+    const captionAssetList = this._player.sources.captions;
+    if (activeTextTrack && Array.isArray(captionAssetList) && captionAssetList.length) {
+      const captonAsset: KalturaCaptionSource = captionAssetList[activeTextTrack.index] || captionAssetList[0]; // get first caption asset if captions off
+      this._loadCaptions(captonAsset, activeTextTrack.index);
+    }
+  };
+
+  private _loadCaptions = (captonSource: KalturaCaptionSource, captionSourceIndex: number) => {
+    if (this._fetchedCaptionIndexes.includes(captionSourceIndex)) {
+      return; // prevent fetch captons if data already exist
+    }
+    const match = captonSource.url.match('/captionAssetId/(.*?)/');
+    if (!match || !match[1]) {
+      return; // captionAssetId not found;
+    }
+    this._player.provider
+      .doRequest([{loader: CaptionLoader, params: {captionAssetId: match[1]}}])
+      .then((data: Map<string, any>) => {
+        if (!data) {
+          this._logger.warn("CaptionLoader doRequest doesn't have data");
+          return;
+        }
+        if (data.has(CaptionLoader.id)) {
+          const captionLoader: CaptionLoader = data.get(CaptionLoader.id);
+          const captions: KalturaCaption[] = captionLoader?.response.captions;
+          if (captions.length) {
+            let cuePoints = captions.map(caption => {
+              return {
+                ...caption,
+                language: captonSource.language,
+                label: captonSource.label,
+                startTime: caption.startTime / 1000,
+                endTime: caption.endTime / 1000,
+                text: caption.content.reduce((acc, cur) => {
+                  return `${acc}${cur.text}`;
+                }, '')
+              };
+            });
+            // filter empty captions
+            cuePoints = cuePoints.filter(cue => cue.text);
+            this._addCuePointToPlayer(cuePoints);
+            // mark captions as fetched
+            this._fetchedCaptionIndexes.push(captionSourceIndex);
+          }
+        }
+      })
+      .catch((e: any) => {
+        this._logger.warn('CaptionLoader doRequest was rejected');
+      });
+  };
+
   private _handleViewChangeResponse(data: Map<string, any>) {
     function createCuePointList(viewChangeCuePoints: Array<KalturaCodeCuePoint>) {
       return viewChangeCuePoints.map((viewChangeCuePoint: KalturaCodeCuePoint) => {
@@ -134,6 +199,13 @@ export class VodProvider extends Provider {
   }
 
   private _handleThumbResponse(data: Map<string, any>) {
+    const replaceAssetUrl = (baseThumbAssetUrl: string) => (thumbCuePoint: KalturaThumbCuePoint) => {
+      return makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId);
+    };
+    const generageAssetUrl = (thumbCuePoint: KalturaThumbCuePoint) => {
+      const {provider} = this._player.config;
+      return generateThumb(provider?.env?.serviceUrl, provider?.partnerId, this._player.sources.id, thumbCuePoint.startTime, provider?.ks);
+    };
     const addCuePoins = (thumbCuePoints: Array<KalturaThumbCuePoint>, assetUrlCreator: (thumbCuePoint: KalturaThumbCuePoint) => string) => {
       let cuePoints = thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
@@ -167,10 +239,13 @@ export class VodProvider extends Provider {
         },
         {slideCuePoints: [], chapterCuePoints: []} as {slideCuePoints: Array<KalturaThumbCuePoint>; chapterCuePoints: Array<KalturaThumbCuePoint>}
       );
-      if (slideCuePoints.length && slideCuePoints[0]?.assetId) {
+      // Find and use first thumb asset ID to get baseAssetUrl from BE service.
+      // Then for each thumb assetId gonna be replaced in baseAssetUrl to avoid BE calls for any thumb asset.
+      const firstAssetId = thumbCuePoints.find(thumb => thumb.assetId)?.assetId;
+      if (firstAssetId) {
         // TODO: doRequest should get parameter 'requestsMustSucceed' once core implement the changes
         this._player.provider
-          .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId: slideCuePoints[0].assetId}}])
+          .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId: firstAssetId}}])
           .then((data: Map<string, any>) => {
             if (!data) {
               this._logger.warn("ThumbUrlLoader doRequest doesn't have data");
@@ -178,23 +253,29 @@ export class VodProvider extends Provider {
             }
             if (data.has(ThumbUrlLoader.id)) {
               const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
-              const baseThumbAssetUrl = thumbAssetUrlLoader?.response;
-              const assetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
-                return makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId);
-              };
-              addCuePoins(slideCuePoints, assetUrlCreator);
+              const baseThumbAssetUrl: string = thumbAssetUrlLoader?.response;
+              if (baseThumbAssetUrl && slideCuePoints.length) {
+                addCuePoins(slideCuePoints, replaceAssetUrl(baseThumbAssetUrl));
+              }
+              if (baseThumbAssetUrl && chapterCuePoints.length) {
+                // if chapters has assetId - make assetUrl from baseAssetUrl otherwise - generate from media by startTime
+                const chapterAssetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
+                  if (thumbCuePoint.assetId) {
+                    // AssetUrl gonna be made by replacing assetId in baseAssetUrl
+                    return replaceAssetUrl(baseThumbAssetUrl)(thumbCuePoint);
+                  }
+                  // AssetUrl gonna be made by BE service (snapshot from current media by time)
+                  return generageAssetUrl(thumbCuePoint);
+                };
+                addCuePoins(chapterCuePoints, chapterAssetUrlCreator);
+              }
             }
           })
           .catch((e: any) => {
             this._logger.warn('ThumbUrlLoader doRequest was rejected');
           });
-      }
-      if (chapterCuePoints.length) {
-        const assetUrlCreator = (thumbCuePoint: KalturaThumbCuePoint) => {
-          const {provider} = this._player.config;
-          return makeChapterThumb(provider?.env?.serviceUrl, provider?.partnerId, this._player.sources.id, thumbCuePoint.startTime, provider?.ks);
-        };
-        addCuePoins(chapterCuePoints, assetUrlCreator);
+      } else if (chapterCuePoints.length) {
+        addCuePoins(chapterCuePoints, generageAssetUrl);
       }
     }
   }
@@ -242,5 +323,10 @@ export class VodProvider extends Provider {
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
       this._addCuePointToPlayer(cuePoints);
     }
+  }
+
+  public destroy(): void {
+    this._fetchedCaptionIndexes = [];
+    this._eventManager.removeAll();
   }
 }
