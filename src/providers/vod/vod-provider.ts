@@ -28,6 +28,12 @@ export class VodProvider extends Provider {
     }
   }
 
+  private _removeListeners() {
+    if (this._types.has(KalturaCuePointType.CAPTION)) {
+      this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
+    }
+  }
+
   private _fetchVodData() {
     let thumbSubTypesFilter = '';
     if (this._types.has(KalturaCuePointType.SLIDE)) {
@@ -327,6 +333,6 @@ export class VodProvider extends Provider {
 
   public destroy(): void {
     this._fetchedCaptionIndexes = [];
-    this._eventManager.removeAll();
+    this._removeListeners();
   }
 }
