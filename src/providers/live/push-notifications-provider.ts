@@ -1,6 +1,7 @@
 import {EventsManager} from './events-manager';
 import {PrepareRegisterRequestConfig, PushNotifications} from './push-notifications';
 import {CuepointTypeMap, KalturaCuePointType} from '../../types';
+import {getUserId} from '../utils';
 
 export interface PushNotificationData {
   cuePointType: string;
@@ -28,7 +29,7 @@ export interface SlideViewChangePushNotificationData extends PushNotificationDat
   code: string;
 }
 
-export interface QnAPushNotificationData extends PushNotificationData {
+export interface QnaPushNotificationData extends PushNotificationData {
   endTime?: number;
   relatedObjects: {
     QandA_ResponseProfile: {
@@ -49,14 +50,16 @@ export interface KalturaMetadata {
 }
 
 export enum PushNotificationEventTypes {
-  PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS',
   PushNotificationsError = 'PUSH_NOTIFICATIONS_ERROR',
   ThumbNotification = 'THUMB_CUE_POINT_READY_NOTIFICATION',
-  SlideViewChangeNotification = 'SLIDE_VIEW_CHANGE_CODE_CUE_POINT'
+  SlideViewChangeNotification = 'SLIDE_VIEW_CHANGE_CODE_CUE_POINT',
+  PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS',
+  UserNotifications = 'USER_QNA_NOTIFICATIONS',
+  CodeNotifications = 'CODE_QNA_NOTIFICATIONS'
 }
 export interface PublicNotificationsEvent {
   type: PushNotificationEventTypes.PublicNotifications;
-  messages: QnAPushNotificationData[];
+  messages: QnaPushNotificationData[];
 }
 export interface NotificationsErrorEvent {
   type: PushNotificationEventTypes.PushNotificationsError;
@@ -70,7 +73,21 @@ export interface SlideViewChangeNotificationsEvent {
   type: PushNotificationEventTypes.SlideViewChangeNotification;
   slideViewChanges: SlideViewChangePushNotificationData[];
 }
-type Events = ThumbNotificationsEvent | SlideViewChangeNotificationsEvent | PublicNotificationsEvent | NotificationsErrorEvent;
+export interface UserQnaNotificationsEvent {
+  type: PushNotificationEventTypes.UserNotifications;
+  messages: QnaPushNotificationData[];
+}
+export interface SettingsNotificationsEvent {
+  type: PushNotificationEventTypes.CodeNotifications;
+  settings: QnaPushNotificationData[];
+}
+type Events =
+  | ThumbNotificationsEvent
+  | SlideViewChangeNotificationsEvent
+  | PublicNotificationsEvent
+  | NotificationsErrorEvent
+  | UserQnaNotificationsEvent
+  | SettingsNotificationsEvent;
 
 /**
  * handles push notification registration and results.
@@ -123,8 +140,15 @@ export class PushNotificationPrivider {
     if (types.has(KalturaCuePointType.VIEW_CHANGE)) {
       registrationConfigs.push(this._createSlideViewChangeRegistration(entryId));
     }
-    if (types.has(KalturaCuePointType.QNA)) {
-      registrationConfigs.push(this._createPublicRegistration(entryId));
+    if (types.has(KalturaCuePointType.PUBLIC_QNA)) {
+      registrationConfigs.push(this._createPublicQnaRegistration(entryId));
+    }
+    if (types.has(KalturaCuePointType.USER_QNA)) {
+      const userId = getUserId();
+      registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
+    }
+    if (types.has(KalturaCuePointType.CODE_QNA)) {
+      registrationConfigs.push(this._createCodeQnaRegistration(entryId));
     }
 
     this._pushServerInstance
@@ -181,8 +205,8 @@ export class PushNotificationPrivider {
     };
   }
 
-  private _createPublicRegistration(entryId: string): PrepareRegisterRequestConfig {
-    this._logger.info('Register public notification');
+  private _createPublicQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
+    this._logger.info('Register public qna notification');
     return {
       eventName: PushNotificationEventTypes.PublicNotifications,
       eventParams: {
@@ -192,6 +216,39 @@ export class PushNotificationPrivider {
         this._events.emit({
           type: PushNotificationEventTypes.PublicNotifications,
           messages: response
+        });
+      }
+    };
+  }
+
+  private _createUserQnaRegistration(entryId: string, userId: string): PrepareRegisterRequestConfig {
+    this._logger.info('Register user qna notification');
+    return {
+      eventName: PushNotificationEventTypes.UserNotifications,
+      eventParams: {
+        entryId: entryId,
+        userId: userId
+      },
+      onMessage: (response: any[]) => {
+        this._events.emit({
+          type: PushNotificationEventTypes.UserNotifications,
+          messages: response
+        });
+      }
+    };
+  }
+
+  private _createCodeQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
+    this._logger.info('Register code qna notification');
+    return {
+      eventName: PushNotificationEventTypes.CodeNotifications,
+      eventParams: {
+        entryId: entryId
+      },
+      onMessage: (response: any[]) => {
+        this._events.emit({
+          type: PushNotificationEventTypes.CodeNotifications,
+          settings: response
         });
       }
     };

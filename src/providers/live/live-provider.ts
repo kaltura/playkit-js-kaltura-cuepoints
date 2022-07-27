@@ -9,7 +9,9 @@ import {
   SlideViewChangePushNotificationData,
   ThumbPushNotificationData,
   PublicNotificationsEvent,
-  QnAPushNotificationData
+  UserQnaNotificationsEvent,
+  QnaPushNotificationData,
+  SettingsNotificationsEvent
 } from './push-notifications-provider';
 import {makeAssetUrl, sortArrayBy} from '../utils';
 import {ThumbUrlLoader} from '../common/thumb-url-loader';
@@ -131,12 +133,13 @@ export class LiveProvider extends Provider {
     });
   }
 
-  private _makeCuePointStartEndTime = (cuePointCreatedAt: number, endTime = Number.MAX_SAFE_INTEGER) => {
+  private _makeCuePointStartEndTime = (cuePointCreatedAt: number, cuePointEndTime?: number) => {
     let startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
     if (startTime < 0) {
       // TextTrack in Safari doesn't allow add new cue-points with startTime less then 0
       startTime = this._player.currentTime;
     }
+    const endTime = cuePointEndTime ? this._player.currentTime - (this._currentTimeLive - cuePointEndTime) : Number.MAX_SAFE_INTEGER;
     return {startTime, endTime};
   };
 
@@ -167,12 +170,36 @@ export class LiveProvider extends Provider {
     }
   };
 
-  private _preparePublicQnACuePoints = (message: QnAPushNotificationData) => {
+  private _preparePublicQnaCuePoints = (message: QnaPushNotificationData) => {
     const qnaCuePoint = {
       ...message,
+      cueType: KalturaCuePointType.PUBLIC_QNA,
       ...this._makeCuePointStartEndTime(message.createdAt, message.endTime)
     };
     this._addCuePointToPlayer([qnaCuePoint]);
+  };
+
+  private _prepareUserQnaCuePoints = (message: QnaPushNotificationData) => {
+    const userQnaCuePoint = {
+      ...message,
+      cueType: KalturaCuePointType.USER_QNA,
+      startTime: 0,
+      endTime: 0
+    };
+    this._addCuePointToPlayer([userQnaCuePoint]);
+  };
+
+  private _prepareCodeQnaCuePoints = (setting: QnaPushNotificationData) => {
+    try {
+      const partnerData = JSON.parse(setting.partnerData);
+      const newCodeCue = {
+        ...setting,
+        partnerData
+      };
+      this._addCuePointToPlayer([newCodeCue]);
+    } catch (e) {
+      this._logger.error('Unnable parse code qna cue-point');
+    }
   };
 
   private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
@@ -207,9 +234,21 @@ export class LiveProvider extends Provider {
     });
   };
 
-  private _handlePublicNotificationsData = ({messages}: PublicNotificationsEvent) => {
+  private _handlePublicQnaNotificationsData = ({messages}: PublicNotificationsEvent) => {
     this._currentTimeLivePromise.then(() => {
-      messages.forEach(message => this._preparePublicQnACuePoints(message));
+      messages.forEach(message => this._preparePublicQnaCuePoints(message));
+    });
+  };
+
+  private _handleUserQnaNotificationsData = ({messages}: UserQnaNotificationsEvent) => {
+    this._currentTimeLivePromise.then(() => {
+      messages.forEach(message => this._prepareUserQnaCuePoints(message));
+    });
+  };
+
+  private _handleCodeQnaNotificationsData = ({settings}: SettingsNotificationsEvent) => {
+    this._currentTimeLivePromise.then(() => {
+      settings.forEach(setting => this._prepareCodeQnaCuePoints(setting));
     });
   };
 
@@ -226,8 +265,14 @@ export class LiveProvider extends Provider {
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
       this._pushNotification.on(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
     }
-    if (this._types.has(KalturaCuePointType.QNA)) {
-      this._pushNotification.on(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
+    if (this._types.has(KalturaCuePointType.PUBLIC_QNA)) {
+      this._pushNotification.on(PushNotificationEventTypes.PublicNotifications, this._handlePublicQnaNotificationsData);
+    }
+    if (this._types.has(KalturaCuePointType.USER_QNA)) {
+      this._pushNotification.on(PushNotificationEventTypes.UserNotifications, this._handleUserQnaNotificationsData);
+    }
+    if (this._types.has(KalturaCuePointType.CODE_QNA)) {
+      this._pushNotification.on(PushNotificationEventTypes.CodeNotifications, this._handleCodeQnaNotificationsData);
     }
   }
 
@@ -240,8 +285,14 @@ export class LiveProvider extends Provider {
     if (this._types.has(KalturaCuePointType.VIEW_CHANGE)) {
       this._pushNotification.off(PushNotificationEventTypes.SlideViewChangeNotification, this._handleSlideViewChangeNotificationData);
     }
-    if (this._types.has(KalturaCuePointType.QNA)) {
-      this._pushNotification.off(PushNotificationEventTypes.PublicNotifications, this._handlePublicNotificationsData);
+    if (this._types.has(KalturaCuePointType.PUBLIC_QNA)) {
+      this._pushNotification.off(PushNotificationEventTypes.PublicNotifications, this._handlePublicQnaNotificationsData);
+    }
+    if (this._types.has(KalturaCuePointType.USER_QNA)) {
+      this._pushNotification.off(PushNotificationEventTypes.UserNotifications, this._handleUserQnaNotificationsData);
+    }
+    if (this._types.has(KalturaCuePointType.CODE_QNA)) {
+      this._pushNotification.off(PushNotificationEventTypes.CodeNotifications, this._handleCodeQnaNotificationsData);
     }
   }
 

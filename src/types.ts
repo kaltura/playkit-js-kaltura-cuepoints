@@ -5,7 +5,9 @@ export enum KalturaThumbCuePointSubType {
   CHAPTER = 2
 }
 export enum KalturaCuePointType {
-  QNA = 'qna',
+  PUBLIC_QNA = 'publicqna',
+  USER_QNA = 'userqna',
+  CODE_QNA = 'codeqna',
   QUIZ = 'quiz',
   SLIDE = 'slide',
   VIEW_CHANGE = 'viewchange',
