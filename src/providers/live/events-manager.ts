@@ -1,3 +1,4 @@
+// TODO: move EventsManager to shared utils
 export type Handler<T> = (event: T) => void;
 export type WildcardHandler = (event: any) => void;
 
