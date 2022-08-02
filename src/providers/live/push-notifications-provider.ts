@@ -1,7 +1,6 @@
-import {EventsManager} from './events-manager';
+import {EventsManager, getUserId} from '@playkit-js/common';
 import {PrepareRegisterRequestConfig, PushNotifications} from './push-notifications';
 import {CuepointTypeMap, KalturaCuePointType} from '../../types';
-import {getUserId} from '../utils';
 
 export interface PushNotificationData {
   cuePointType: string;

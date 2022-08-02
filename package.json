@@ -74,6 +74,7 @@
     "html5 player"
   ],
   "dependencies": {
+    "@playkit-js/common": "^1.0.0",
     "socket.io-client": "2.3.1"
   }
 }
