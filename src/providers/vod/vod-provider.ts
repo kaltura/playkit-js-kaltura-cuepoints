@@ -127,8 +127,12 @@ export class VodProvider extends Provider {
     if (!match || !match[1]) {
       return; // captionAssetId not found;
     }
+    // as 'serveAsJson' action returns content of file it can't be included in multirequest that contains several responses.
+    // to prevent add in multirequest 'startWidgetSession' action for anonymous users doRequest method takes a session ks.
+    const {session} = this._player.config;
+    const ks = session?.isAnonymous ? this._player.config.session.ks : undefined;
     this._player.provider
-      .doRequest([{loader: CaptionLoader, params: {captionAssetId: match[1]}}])
+      .doRequest([{loader: CaptionLoader, params: {captionAssetId: match[1]}}], ks)
       .then((data: Map<string, any>) => {
         if (!data) {
           this._logger.warn("CaptionLoader doRequest doesn't have data");
