@@ -14,7 +14,8 @@ import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import {CaptionLoader} from './caption-loader';
 
 export class VodProvider extends Provider {
-  private _fetchedCaptionIndexes: Array<number> = [];
+  private _fetchedCaptionKeys: Array<string> = [];
+  private _fetchingCaptionKey: string | null = null;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -114,19 +115,24 @@ export class VodProvider extends Provider {
     const activeTextTrack = allTextTracks.find(track => track.active);
     const captionAssetList = this._player.sources.captions;
     if (activeTextTrack && Array.isArray(captionAssetList) && captionAssetList.length) {
-      const captonAsset: KalturaCaptionSource = captionAssetList[activeTextTrack.index] || captionAssetList[0]; // get first caption asset if captions off
-      this._loadCaptions(captonAsset, activeTextTrack.index);
+      const captonAsset: KalturaCaptionSource =
+        captionAssetList.find(captionAsset => {
+          return captionAsset.language === activeTextTrack.language && captionAsset.label === activeTextTrack.label;
+        }) || captionAssetList[0]; // get first caption asset if captions off
+      this._loadCaptions(captonAsset);
     }
   };
 
-  private _loadCaptions = (captonSource: KalturaCaptionSource, captionSourceIndex: number) => {
-    if (this._fetchedCaptionIndexes.includes(captionSourceIndex)) {
-      return; // prevent fetch captons if data already exist
+  private _loadCaptions = (captonSource: KalturaCaptionSource) => {
+    const captionKey = `${captonSource.language}-${captonSource.label}`;
+    if (this._fetchedCaptionKeys.includes(captionKey) || this._fetchingCaptionKey === captionKey) {
+      return; // prevent fetch captons if data already exist or fetching now
     }
     const match = captonSource.url.match('/captionAssetId/(.*?)/');
     if (!match || !match[1]) {
       return; // captionAssetId not found;
     }
+    this._fetchingCaptionKey = captionKey;
     // as 'serveAsJson' action returns content of file it can't be included in multirequest that contains several responses.
     // to prevent add in multirequest 'startWidgetSession' action for anonymous users doRequest method takes a session ks.
     const {session} = this._player.config;
@@ -158,12 +164,15 @@ export class VodProvider extends Provider {
             cuePoints = cuePoints.filter(cue => cue.text);
             this._addCuePointToPlayer(cuePoints);
             // mark captions as fetched
-            this._fetchedCaptionIndexes.push(captionSourceIndex);
+            this._fetchedCaptionKeys.push(captionKey);
           }
         }
       })
       .catch((e: any) => {
-        this._logger.warn('CaptionLoader doRequest was rejected');
+        this._logger.warn(`Fetching captions ${captionKey} has failed`);
+      })
+      .finally(() => {
+        this._fetchingCaptionKey = null;
       });
   };
 
@@ -336,7 +345,8 @@ export class VodProvider extends Provider {
   }
 
   public destroy(): void {
-    this._fetchedCaptionIndexes = [];
+    this._fetchedCaptionKeys = [];
+    this._fetchingCaptionKey = null;
     this._removeListeners();
   }
 }
