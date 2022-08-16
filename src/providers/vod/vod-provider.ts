@@ -169,7 +169,7 @@ export class VodProvider extends Provider {
         }
       })
       .catch((e: any) => {
-        this._logger.warn(`Fetching captions ${captionKey} was failed`);
+        this._logger.warn(`Fetching captions ${captionKey} has failed`);
       })
       .finally(() => {
         this._fetchingCaptionKey = null;
