@@ -346,6 +346,7 @@ export class VodProvider extends Provider {
 
   public destroy(): void {
     this._fetchedCaptionKeys = [];
+    this._fetchingCaptionKey = null;
     this._removeListeners();
   }
 }
