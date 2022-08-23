@@ -128,7 +128,7 @@ export class VodProvider extends Provider {
     if (this._fetchedCaptionKeys.includes(captionKey) || this._fetchingCaptionKey === captionKey) {
       return; // prevent fetch captons if data already exist or fetching now
     }
-    const match = captonSource.url.match('/captionAssetId/(.*?)/');
+    const match = captonSource.url.match('/captionAssetId/(.*?)(/|$)');
     if (!match || !match[1]) {
       return; // captionAssetId not found;
     }
