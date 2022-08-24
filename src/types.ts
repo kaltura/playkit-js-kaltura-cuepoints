@@ -20,3 +20,10 @@ export enum CuePointTags {
   ANSWERONAIR = 'qna',
   HOTSPOT = 'hotspots'
 }
+
+export interface CuePoint {
+  id: string;
+  startTime: number;
+  endTime: number;
+  metadata: Record<string, any>;
+}
