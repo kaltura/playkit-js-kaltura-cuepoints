@@ -32,11 +32,10 @@ export class Provider {
       if (!this.cuePointManager) {
         this.cuePointManager = new CuePointManager(this._player, this._eventManager);
       }
-      this._player.ready().then(() => {
-        this.cuePointManager!.addCuePoints(playerCuePoints);
-      });
+      this.cuePointManager.addCuePoints(playerCuePoints);
+    } else {
+      this._player.cuePointManager.addCuePoints(playerCuePoints);
     }
-    this._player.cuePointManager.addCuePoints(playerCuePoints);
   }
 
   public destroy() {

@@ -24,25 +24,25 @@ export class CuePointManager {
     if (!cuePoints || cuePoints.length === 0) {
       return;
     }
+    this._player.ready().then(() => {
+      const newCuePoints: Array<core.TimedMetadata> = cuePoints.map(cuePoint => {
+        return {
+          ...cuePoint,
+          type: core.TimedMetadata.TYPE.CUE_POINT
+        };
+      });
+      this._player.dispatchEvent(new core.FakeEvent(core.EventType.TIMED_METADATA_ADDED, {cues: newCuePoints}));
 
-    const newCuePoints: Array<core.TimedMetadata> = cuePoints.map(cuePoint => {
-      return {
-        ...cuePoint,
-        type: core.TimedMetadata.TYPE.CUE_POINT
-      };
+      this._allCuePoints = [...this._allCuePoints, ...newCuePoints];
+      this._engine = new CuepointEngine(this._allCuePoints);
+      this._activeCuePoints = [];
+      this._getActiveCuePoints(null, true);
     });
-    this._player.dispatchEvent(new core.FakeEvent(core.EventType.TIMED_METADATA_ADDED, {cues: newCuePoints}));
-
-    this._allCuePoints = [...this._allCuePoints, ...newCuePoints];
-    this._engine = new CuepointEngine(this._allCuePoints);
-    this._activeCuePoints = [];
-    this._getActiveCuePoints(null, true);
   };
 
   private _setActiveCuePoints = (activeCuePoints: Array<CuePoint>) => {
     this._activeCuePoints = activeCuePoints;
-    const mergedCuePoints = [...this._player.cuePointManager.getActiveCuePoints(), ...this._activeCuePoints];
-    this._player.dispatchEvent(new core.FakeEvent(core.EventType.TIMED_METADATA_CHANGE, {cues: mergedCuePoints}));
+    this._player.dispatchEvent(new core.FakeEvent(core.EventType.TIMED_METADATA_CHANGE, {cues: this._activeCuePoints}));
   };
 
   private _getActiveCuePoints = (event: unknown, forceSnapshot = false) => {
@@ -51,6 +51,7 @@ export class CuePointManager {
     }
 
     const activeCuePoints = this._engine.updateTime(this._player.currentTime, forceSnapshot);
+    // compare current active cuePoints list with data from snapshot and dispatch TIMED_METADATA_CHANGE event if needed
     if (
       activeCuePoints.snapshot &&
       activeCuePoints.snapshot.length > 0 &&
@@ -66,6 +67,7 @@ export class CuePointManager {
 
     const {show, hide} = activeCuePoints.delta;
     if (show.length > 0 || hide.length > 0) {
+      // update current cuePoints list with cuePoints from show and hide arrays
       this._activeCuePoints = this._activeCuePoints.filter(cuePoint => {
         return !hide.find(hCuePoint => cuePoint.id === hCuePoint.id);
       });
