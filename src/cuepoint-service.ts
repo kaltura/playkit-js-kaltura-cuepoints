@@ -31,6 +31,10 @@ export class CuepointService {
     return CuePointTags;
   }
 
+  public get cuePointManager() {
+    return this._provider?.cuePointManager || null;
+  }
+
   constructor(player: Player, eventManager: EventManager, logger: any) {
     this._logger = logger;
     this._player = player;

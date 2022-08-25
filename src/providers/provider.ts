@@ -1,4 +1,5 @@
-import {CuepointTypeMap} from '../types';
+import {CuepointTypeMap, CuePoint} from '../types';
+import {CuePointManager} from '../cuepoint-manager';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
@@ -12,6 +13,7 @@ export class Provider {
   protected _player: Player;
   protected _eventManager: EventManager;
   protected _logger: Logger;
+  public cuePointManager: CuePointManager | null = null;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     this._types = types;
@@ -22,12 +24,23 @@ export class Provider {
   }
 
   protected _addCuePointToPlayer(cuePoints: any[]) {
-    const playerCuePoints = cuePoints.map(cuePoint => {
+    const playerCuePoints: CuePoint[] = cuePoints.map(cuePoint => {
       const {startTime, endTime, id, ...metadata} = cuePoint;
       return {startTime, endTime, id, metadata};
     });
-    this._player.cuePointManager.addCuePoints(playerCuePoints);
+    if (this._player.engineType === 'youtube') {
+      if (!this.cuePointManager) {
+        this.cuePointManager = new CuePointManager(this._player, this._eventManager);
+      }
+      this.cuePointManager.addCuePoints(playerCuePoints);
+    } else {
+      this._player.cuePointManager.addCuePoints(playerCuePoints);
+    }
   }
 
-  public destroy() {}
+  public destroy() {
+    if (this.cuePointManager) {
+      this.cuePointManager.destroy();
+    }
+  }
 }
