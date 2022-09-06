@@ -329,7 +329,7 @@ export class VodProvider extends Provider {
           text: hotspotCuePoint.text,
           partnerData: hotspotCuePoint.partnerData,
           startTime: hotspotCuePoint.startTime / 1000,
-          endTime: hotspotCuePoint.endTime || Number.MAX_SAFE_INTEGER,
+          endTime: hotspotCuePoint.endTime ? hotspotCuePoint.endTime / 1000 : Number.MAX_SAFE_INTEGER,
           tags: hotspotCuePoint.tags
         };
       });
