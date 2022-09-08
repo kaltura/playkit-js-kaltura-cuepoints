@@ -134,13 +134,14 @@ export class LiveProvider extends Provider {
   }
 
   private _makeCuePointStartEndTime = (cuePointCreatedAt: number, cuePointEndTime?: number) => {
-    let startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
-    if (startTime < 0) {
-      // TextTrack in Safari doesn't allow add new cue-points with startTime less then 0
-      startTime = this._player.currentTime;
-    }
+    const startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
     const endTime = cuePointEndTime ? this._player.currentTime - (this._currentTimeLive - cuePointEndTime) : Number.MAX_SAFE_INTEGER;
     return {startTime, endTime};
+  };
+
+  private _isCueInvalid = (cue: {startTime: number}) => {
+    // cue points from previous session or out of DVR window
+    return isNaN(cue.startTime) || cue.startTime < 0;
   };
 
   private _prepareThumbCuePoints = (newThumb: ThumbPushNotificationData) => {
@@ -149,6 +150,9 @@ export class LiveProvider extends Provider {
       ...this._makeCuePointStartEndTime(newThumb.createdAt),
       assetUrl: makeAssetUrl(this._baseThumbAssetUrl, newThumb.assetId)
     };
+    if (this._isCueInvalid(newThumbCue)) {
+      return;
+    }
     this._thumbCuePoints.push(newThumbCue);
     this._thumbCuePoints = this._fixCuePointEndTime(this._thumbCuePoints);
     this._addCuePointToPlayer([newThumbCue]);
@@ -162,6 +166,9 @@ export class LiveProvider extends Provider {
         ...this._makeCuePointStartEndTime(viewChange.createdAt),
         partnerData
       };
+      if (this._isCueInvalid(newViewChangeCue)) {
+        return;
+      }
       this._slideViewChangeCuePoints.push(newViewChangeCue);
       this._slideViewChangeCuePoints = this._fixCuePointEndTime(this._slideViewChangeCuePoints);
       this._addCuePointToPlayer([newViewChangeCue]);
@@ -176,6 +183,9 @@ export class LiveProvider extends Provider {
       cueType: KalturaCuePointType.PUBLIC_QNA,
       ...this._makeCuePointStartEndTime(message.createdAt, message.endTime)
     };
+    if (this._isCueInvalid(qnaCuePoint)) {
+      return;
+    }
     this._addCuePointToPlayer([qnaCuePoint]);
   };
 
