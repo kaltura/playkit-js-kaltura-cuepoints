@@ -30,10 +30,12 @@ export class LiveProvider extends Provider {
   private _seekDifference: number | null = 0;
   private _currentTimeLiveResolvePromise = () => {};
   private _currentTimeLivePromise: Promise<void>;
+
   private _baseThumbAssetUrl: string = '';
   private _thumbUrlLoaderResolvePromise = () => {};
   private _thumbUrlLoaderPromise: Promise<void>;
   private _thumbUrlIsLoaderActive = false;
+  private _thumbUrlAssetIdQueue: Array<string> = [];
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -202,27 +204,44 @@ export class LiveProvider extends Provider {
     }
   };
 
-  private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
-    if (!this._baseThumbAssetUrl && !this._thumbUrlIsLoaderActive) {
-      // Fetch and save baseThumbAssetUrl for thumbs
-      this._thumbUrlIsLoaderActive = true;
-      this._player.provider
-        .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId: thumbs[0]?.assetId}}])
-        .then((data: Map<string, any>) => {
-          if (data.has(ThumbUrlLoader.id)) {
-            const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
-            this._baseThumbAssetUrl = thumbAssetUrlLoader?.response;
-            this._thumbUrlLoaderResolvePromise();
-          }
-        })
-        .catch((e: any) => {
-          this._logger.warn("can't get baseThumbAssetUrl");
-        })
-        .finally(() => {
-          this._thumbUrlIsLoaderActive = false;
-        });
+  private _getBaseThumbAssetUrl = (): void => {
+    if (this._thumbUrlIsLoaderActive) {
+      return;
     }
+    this._thumbUrlIsLoaderActive = true;
+    // get thumbAssetId from queue
+    const thumbAssetId = this._thumbUrlAssetIdQueue.shift();
+    // Try fetch and then save baseThumbAssetUrl for thumbs
+    this._player.provider
+      .doRequest([{loader: ThumbUrlLoader, params: {thumbAssetId}}])
+      .then((data: Map<string, any>) => {
+        this._thumbUrlIsLoaderActive = false;
+        if (data.has(ThumbUrlLoader.id)) {
+          this._logger.debug('baseThumbAssetUrl fetched');
+          const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
+          this._baseThumbAssetUrl = thumbAssetUrlLoader?.response;
+          // clear thumbUrlAssetId queue
+          this._thumbUrlAssetIdQueue = [];
+          this._thumbUrlLoaderResolvePromise();
+        }
+      })
+      .catch((e: any) => {
+        this._thumbUrlIsLoaderActive = false;
+        this._logger.warn("can't get baseThumbAssetUrl");
+        if (this._thumbUrlAssetIdQueue.length) {
+          this._logger.debug('try get next thumbAssetId from queue');
+          this._getBaseThumbAssetUrl();
+        }
+      });
+  };
 
+  private _handleThumbNotificationData = ({thumbs}: ThumbNotificationsEvent) => {
+    if (!this._baseThumbAssetUrl && thumbs[0]?.assetId) {
+      // Add thumbAssetId to queue
+      this._thumbUrlAssetIdQueue.push(thumbs[0]?.assetId);
+      this._getBaseThumbAssetUrl();
+    }
+    // Wait till baseThumbAssetUrl got ready
     Promise.all([this._currentTimeLivePromise, this._thumbUrlLoaderPromise]).then(() => {
       thumbs.forEach(thumb => this._prepareThumbCuePoints(thumb));
     });
