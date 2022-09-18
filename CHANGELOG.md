@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.5...v1.6.0) (2022-09-18)
+
+
+### Bug Fixes
+
+* **FEV-1291:** custom cue-point engine ([#35](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/35)) ([afd950b](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/afd950b))
+* **FEV-1322:** asset url fallback ([#39](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/39)) ([22adbd5](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/22adbd5))
+* **FEV-1322:** cue-point start-time validation ([#40](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/40)) ([7ae1a3f](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/7ae1a3f))
+* **FEV-1345:** fix 'serve_as_json' action for antonyms users ([#32](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/32)) ([c7e4027](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/c7e4027))
+* **FEV-1355:** Transacript only works for first language in videos that contain multiple captions ([#33](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/33)) ([642288d](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/642288d))
+* **FEV-1415:** fix hotspots cues end-time ([#38](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/38)) ([fd48391](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/fd48391))
+
+
+### Features
+
+* **FEV-1271:** add new cue-point types for cue-point manager ([#29](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/29)) ([ae10eb2](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/ae10eb2))
+* **FEV-1275:** QnA plugin suport ([#31](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/31)) ([3b9238d](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/3b9238d))
+
+
+
 ### [1.5.5](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.5.4...v1.5.5) (2022-05-26)
 
 
