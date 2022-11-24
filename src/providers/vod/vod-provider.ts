@@ -25,12 +25,16 @@ export class VodProvider extends Provider {
 
   private _addListeners() {
     if (this._types.has(KalturaCuePointType.CAPTION)) {
+      // handle non external text tracks (on init)
+      this._eventManager.listenOnce(this._player, this._player.Event.TEXT_TRACK_ADDED, this._handleLanguageChange);
+      // handle change of caption track
       this._eventManager.listen(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
     }
   }
 
   private _removeListeners() {
     if (this._types.has(KalturaCuePointType.CAPTION)) {
+      this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_ADDED, this._handleLanguageChange);
       this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
     }
   }
