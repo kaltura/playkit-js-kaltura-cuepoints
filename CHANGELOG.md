@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.0...v3.0.1) (2022-11-27)
+
+
+### Bug Fixes
+
+* **FEV-1597:** handle non-external text tracks ([#44](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/44)) ([ef06267](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/ef06267))
+
+
+
 ### [1.6.2](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v1.6.1...v1.6.2) (2022-09-19)
 
 
