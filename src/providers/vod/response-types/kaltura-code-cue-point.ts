@@ -24,11 +24,18 @@ export class KalturaCodeCuePoint extends KalturaCuePoint {
    */
   duration: number;
 
+  /**
+   * @member - The cue point tags
+   * @type {string}
+   */
+  tags: string = '';
+
   constructor(codeCuePoint: any) {
     super(codeCuePoint);
     this.code = codeCuePoint.code;
     this.description = codeCuePoint.description;
     this.endTime = codeCuePoint.endTime;
     this.duration = codeCuePoint.duration;
+    this.tags = codeCuePoint.tags;
   }
 }
