@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.2...v3.0.3) (2023-01-18)
+
+
+### Bug Fixes
+
+* **FEV-1629:** incorrect slide layout appear after live clipping ([#45](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/45)) ([3f507da](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/3f507da))
+
+
+
 ### [3.0.2](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.1...v3.0.2) (2022-12-12)
 
 
