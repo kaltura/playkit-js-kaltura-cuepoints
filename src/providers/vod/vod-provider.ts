@@ -188,7 +188,8 @@ export class VodProvider extends Provider {
           startTime: viewChangeCuePoint.startTime / 1000,
           endTime: viewChangeCuePoint.endTime || Number.MAX_SAFE_INTEGER,
           cuePointType: viewChangeCuePoint.cuePointType,
-          partnerData: viewChangeCuePoint.partnerData
+          partnerData: viewChangeCuePoint.partnerData,
+          tags: viewChangeCuePoint.tags
         };
       });
     }

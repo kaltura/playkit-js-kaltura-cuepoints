@@ -35,7 +35,7 @@ export class ViewChangeLoader implements ILoader {
       },
       responseProfile: {
         type: INCLUDE_FIELDS,
-        fields: 'id, startTime, endTime, partnerData, cuePointType'
+        fields: 'id, startTime, endTime, partnerData, cuePointType, tags'
       }
     };
     this.requests.push(request);
