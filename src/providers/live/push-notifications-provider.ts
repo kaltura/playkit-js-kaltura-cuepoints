@@ -1,4 +1,4 @@
-import {EventsManager, getUserId} from '@playkit-js/common';
+import {EventsManager, getQnaUserId} from '@playkit-js/common/dist/utils-common';
 import {PrepareRegisterRequestConfig, PushNotifications} from './push-notifications';
 import {CuepointTypeMap, KalturaCuePointType} from '../../types';
 
@@ -143,7 +143,7 @@ export class PushNotificationPrivider {
       registrationConfigs.push(this._createPublicQnaRegistration(entryId));
     }
     if (types.has(KalturaCuePointType.USER_QNA)) {
-      const userId = getUserId();
+      const userId = getQnaUserId(this._player);
       registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
     }
     if (types.has(KalturaCuePointType.CODE_QNA)) {
