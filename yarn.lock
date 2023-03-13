@@ -277,11 +277,13 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@playkit-js/common@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@playkit-js/common/-/common-1.0.0.tgz#465af7167af924425b2e76b1f71b04e658f8bfdb"
-  integrity sha512-jjRJmgBzhEPPHB5dnSCV9AT6J/opkAlMmtuM2HD2H9NR74h7dCBGjYtP3wm5APZop40ex4AQgCuet44ke+AS/A==
+"@playkit-js/common@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@playkit-js/common/-/common-1.1.5.tgz#20410ef8e32c4820146a2a462d5318fac6be1e96"
+  integrity sha512-NgVELo6z9+DI9aiKL8oj5p/d5pzJCZgwuk0LN3lKizPuNfvu/30lavsH4hNCrWOjgnT7o4EEFrmVK9buzqmIHQ==
   dependencies:
+    "@playkit-js/playkit-js-ui" "^0.74.0"
+    classnames "^2.3.2"
     linkify-it "^4.0.1"
 
 "@playkit-js/playkit-js-dash@canary":
@@ -298,6 +300,16 @@
   version "0.72.1"
   resolved "https://registry.yarnpkg.com/@playkit-js/playkit-js-ui/-/playkit-js-ui-0.72.1.tgz#dff414b45681f7c95bb4e4abd459219bed259af5"
   integrity sha512-ZyUstM2Zs0kiJ86SgIVhWdtrTKrXoXcqfvDWYQRHFz/q+4rhZX/86K3mAKk8LYqXCBd0tqdB2Q1V27qSEPifwQ==
+  dependencies:
+    preact "^10.3.4"
+    preact-i18n "^2.0.0-preactx.2"
+    react-redux "^7.2.0"
+    redux "^4.0.5"
+
+"@playkit-js/playkit-js-ui@^0.74.0":
+  version "0.74.0"
+  resolved "https://registry.yarnpkg.com/@playkit-js/playkit-js-ui/-/playkit-js-ui-0.74.0.tgz#22d0b0f8443cb77352f3ba877b3efc2188bde4ae"
+  integrity sha512-my/6/HIGGRmP3vJC3vBs0jYwJA2bKyIQlAxH/ZAZccW+xW7iztVskxvkCoAdyFKn1rlddNaq9V962oYKxKtc3Q==
   dependencies:
     preact "^10.3.4"
     preact-i18n "^2.0.0-preactx.2"
@@ -1613,6 +1625,11 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
+
+classnames@^2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
+  integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
 
 clean-stack@^2.0.0:
   version "2.2.0"
