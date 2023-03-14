@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.4](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.3...v3.0.4) (2023-03-14)
+
+
+### Bug Fixes
+
+* **SUP-34892:** When users send private messages their names appears incorrect in WC app. ([#46](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/46)) ([8114481](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/8114481))
+
+
+
 ### [3.0.3](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.2...v3.0.3) (2023-01-18)
 
 
