@@ -1,6 +1,6 @@
 {
   "name": "@playkit-js/playkit-js-kaltura-cuepoints",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "main": "dist/playkit-kaltura-cuepoints.js",
   "scripts": {
     "clean": "rm -rf ./dist",
