@@ -1,7 +1,7 @@
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import sinon from 'sinon/pkg/sinon';
-import * as KalturaPlayer from 'kaltura-player-js';
+import * as KalturaPlayer from '@playkit-js/kaltura-player-js';
 
 /**
  * @returns {void}

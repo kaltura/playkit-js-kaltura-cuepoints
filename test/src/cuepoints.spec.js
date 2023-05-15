@@ -1,4 +1,4 @@
-import {setup, core} from 'kaltura-player-js';
+import {setup, core} from '@playkit-js/kaltura-player-js';
 import * as TestUtils from './utils/test-utils';
 import {VodProvider} from '../../src/providers/vod/vod-provider';
 import {LiveProvider} from '../../src/providers/live/live-provider';
