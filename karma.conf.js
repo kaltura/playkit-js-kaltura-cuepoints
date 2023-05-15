@@ -12,7 +12,7 @@ module.exports = function (config) {
     browserDisconnectTimeout: 30000,
     browserNoActivityTimeout: 60000,
     customLaunchers: launchers,
-    browsers: ['Chrome_browser', 'Firefox'],
+    browsers: [],
     concurrency: 1,
     singleRun: true,
     colors: true,
