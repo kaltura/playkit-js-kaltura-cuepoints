@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.5](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.4...v3.0.5) (2023-05-15)
+
+
+
 ### [3.0.4](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.3...v3.0.4) (2023-03-14)
 
 
