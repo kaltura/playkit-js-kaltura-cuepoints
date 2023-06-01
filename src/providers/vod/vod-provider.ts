@@ -226,11 +226,11 @@ export class VodProvider extends Provider {
     const replaceAssetUrl = (baseThumbAssetUrl: string) => (thumbCuePoint: KalturaThumbCuePoint) => {
       return makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId);
     };
-    const generageAssetUrl = (thumbCuePoint: KalturaThumbCuePoint) => {
+    const generateAssetUrl = (thumbCuePoint: KalturaThumbCuePoint) => {
       const {provider} = this._player.config;
       return generateThumb(provider?.env?.serviceUrl, provider?.partnerId, this._player.sources.id, thumbCuePoint.startTime, provider?.ks);
     };
-    const addCuePoins = (thumbCuePoints: Array<KalturaThumbCuePoint>, assetUrlCreator: (thumbCuePoint: KalturaThumbCuePoint) => string) => {
+    const addCuePoints = (thumbCuePoints: Array<KalturaThumbCuePoint>, assetUrlCreator: (thumbCuePoint: KalturaThumbCuePoint) => string) => {
       let cuePoints = thumbCuePoints.map((thumbCuePoint: KalturaThumbCuePoint) => {
         return {
           assetUrl: assetUrlCreator(thumbCuePoint),
@@ -240,7 +240,8 @@ export class VodProvider extends Provider {
           description: thumbCuePoint.description,
           subType: thumbCuePoint.subType,
           startTime: thumbCuePoint.startTime / 1000,
-          endTime: Number.MAX_SAFE_INTEGER
+          endTime: Number.MAX_SAFE_INTEGER,
+          isDefaultThumb: !thumbCuePoint.assetId
         };
       });
       cuePoints = sortArrayBy(cuePoints, 'startTime');
@@ -279,7 +280,7 @@ export class VodProvider extends Provider {
               const thumbAssetUrlLoader: ThumbUrlLoader = data.get(ThumbUrlLoader.id);
               const baseThumbAssetUrl: string = thumbAssetUrlLoader?.response;
               if (baseThumbAssetUrl && slideCuePoints.length) {
-                addCuePoins(slideCuePoints, replaceAssetUrl(baseThumbAssetUrl));
+                addCuePoints(slideCuePoints, replaceAssetUrl(baseThumbAssetUrl));
               }
               if (baseThumbAssetUrl && chapterCuePoints.length) {
                 // if chapters has assetId - make assetUrl from baseAssetUrl otherwise - generate from media by startTime
@@ -289,9 +290,9 @@ export class VodProvider extends Provider {
                     return replaceAssetUrl(baseThumbAssetUrl)(thumbCuePoint);
                   }
                   // AssetUrl gonna be made by BE service (snapshot from current media by time)
-                  return generageAssetUrl(thumbCuePoint);
+                  return generateAssetUrl(thumbCuePoint);
                 };
-                addCuePoins(chapterCuePoints, chapterAssetUrlCreator);
+                addCuePoints(chapterCuePoints, chapterAssetUrlCreator);
               }
             }
           })
@@ -299,7 +300,7 @@ export class VodProvider extends Provider {
             this._logger.warn('ThumbUrlLoader doRequest was rejected');
           });
       } else if (chapterCuePoints.length) {
-        addCuePoins(chapterCuePoints, generageAssetUrl);
+        addCuePoints(chapterCuePoints, generateAssetUrl);
       }
     }
   }
