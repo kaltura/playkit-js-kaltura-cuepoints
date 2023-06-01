@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.6 (2023-06-01)
+
+
+### Bug Fixes
+
+* **FEC-12948:** navigation plugin renders thumbnails for chapters with default thumbnail ([#51](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/51)) ([a25cd20](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/a25cd20))
+
+
+
 ### [3.0.5](https://github.com/kaltura/playkit-js-kaltura-cuepoints/compare/v3.0.4...v3.0.5) (2023-05-15)
 
 
