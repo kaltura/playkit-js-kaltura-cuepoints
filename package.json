@@ -2,11 +2,17 @@
   "name": "@playkit-js/playkit-js-kaltura-cuepoints",
   "version": "3.0.6",
   "main": "dist/playkit-kaltura-cuepoints.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "dist/",
+    "types/"
+  ],
   "scripts": {
     "clean": "rm -rf ./dist",
     "prebuild": "npm run clean",
     "build": "webpack --mode production",
     "dev": "webpack-dev-server --mode development",
+    "types:ganarate": "tsc --declaration --emitDeclarationOnly --experimentalDecorators --outFile types/modules.ts",
     "watch": "webpack --progress --colors --watch --mode development",
     "test": "NODE_ENV=test karma start --color --mode development",
     "release": "standard-version",
