@@ -24,6 +24,9 @@ export class Provider {
   }
 
   protected _addCuePointToPlayer(cuePoints: any[]) {
+    if (!cuePoints.length) {
+      return;
+    }
     const playerCuePoints: CuePoint[] = cuePoints.map(cuePoint => {
       const {startTime, endTime, id, ...metadata} = cuePoint;
       return {startTime, endTime, id, metadata};

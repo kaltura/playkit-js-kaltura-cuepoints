@@ -83,7 +83,7 @@ export class VodProvider extends Provider {
             this._handleViewChangeResponse(data);
           }
           if (data.has(QuizQuestionLoader.id)) {
-            this._handleQuizQustionResponse(data);
+            this._handleQuizQuestionResponse(data);
           }
           if (data.has(HotspotLoader.id)) {
             this._handleHotspotResponse(data);
@@ -213,9 +213,11 @@ export class VodProvider extends Provider {
 
       lockedCuePoints = sortArrayBy(lockedCuePoints, 'startTime');
       lockedCuePoints = this._fixCuePointsEndTime(lockedCuePoints);
+      lockedCuePoints = this._filterAndMoveCuePoints(lockedCuePoints);
 
       viewChangeCuePoints = sortArrayBy(viewChangeCuePoints, 'startTime');
       viewChangeCuePoints = this._fixCuePointsEndTime(viewChangeCuePoints);
+      viewChangeCuePoints = this._filterAndMoveCuePoints(viewChangeCuePoints);
 
       this._addCuePointToPlayer(viewChangeCuePoints);
       this._addCuePointToPlayer(lockedCuePoints);
@@ -246,6 +248,7 @@ export class VodProvider extends Provider {
       });
       cuePoints = sortArrayBy(cuePoints, 'startTime');
       cuePoints = this._fixCuePointsEndTime(cuePoints);
+      cuePoints = this._filterAndMoveCuePoints(cuePoints);
       this._addCuePointToPlayer(cuePoints);
     };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
@@ -305,7 +308,7 @@ export class VodProvider extends Provider {
     }
   }
 
-  private _handleQuizQustionResponse(data: Map<string, any>) {
+  private _handleQuizQuestionResponse(data: Map<string, any>) {
     const createCuePointList = (quizQuestionCuePoints: Array<KalturaQuizQuestionCuePoint>) => {
       return quizQuestionCuePoints.map((quizQuestionCuePoint: KalturaQuizQuestionCuePoint) => {
         const startTime = quizQuestionCuePoint.startTime / 1000;
@@ -321,6 +324,7 @@ export class VodProvider extends Provider {
     this._logger.debug(`_fetchVodData quiz question response successful with ${quizQuestionCuePoints.length} cue points`);
     if (quizQuestionCuePoints.length) {
       let cuePoints = createCuePointList(quizQuestionCuePoints);
+      cuePoints = this._filterAndMoveCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
       this._addCuePointToPlayer(cuePoints);
     }
@@ -341,13 +345,43 @@ export class VodProvider extends Provider {
       });
     };
     const hotspotCuePointsLoader: HotspotLoader = data.get(HotspotLoader.id);
-    const hotspotCuePoints: Array<KalturaHotspotCuePoint> = hotspotCuePointsLoader?.response.hotspotCuePoints || [];
+    let hotspotCuePoints: Array<KalturaHotspotCuePoint> = hotspotCuePointsLoader?.response.hotspotCuePoints || [];
     this._logger.debug(`_fetchVodData hotspots response successful with ${hotspotCuePoints.length} cue points`);
     if (hotspotCuePoints.length) {
       let cuePoints = createCuePointList(hotspotCuePoints);
+      cuePoints = this._filterAndMoveCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
       this._addCuePointToPlayer(cuePoints);
     }
+  }
+
+  private _filterAndMoveCuePoints(cuePoints: any[]): any[] {
+    // TODO: add seekFrom and clipTo to player-config.d.ts file in kaltura-player
+    // @ts-ignore
+    const {seekFrom, clipTo} = this._player.sources;
+    if (cuePoints.length && seekFrom && clipTo) {
+      // video was clipped- the original cue-points times may not fit the new video
+      // filter cue-points that are out of the clipped video range
+      const filteredCuePoints = this._filterCuePointsOutOfVideoRange(cuePoints, seekFrom, clipTo);
+      // move the cue-points by adjusting their start and end times
+      this._moveCuePoints(filteredCuePoints, seekFrom);
+      return filteredCuePoints;
+    }
+    return cuePoints;
+  }
+
+  private _moveCuePoints(cuePoints: any[], seekFrom: number): void {
+    cuePoints.forEach((cp: any) => {
+      const offset = cp.startTime - seekFrom;
+      cp.startTime = offset;
+      if (cp.endTime !== Number.MAX_SAFE_INTEGER) {
+        cp.endTime = cp.endTime - offset;
+      }
+    });
+  }
+
+  private _filterCuePointsOutOfVideoRange(cuePoints: any[], seekFrom: number, clipTo: number): any[] {
+    return cuePoints.filter((cp: any) => cp.startTime >= seekFrom && (cp.endTime <= clipTo || cp.endTime === Number.MAX_SAFE_INTEGER));
   }
 
   public destroy(): void {
