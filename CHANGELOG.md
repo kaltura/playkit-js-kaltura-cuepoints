@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.7 (2024-01-07)
+
+
+### Bug Fixes
+
+* **FEC-13533:** filter and move cue points if video was clipped ([#55](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/55)) ([eff3404](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/eff3404))
+
+
+
 ### 3.0.6 (2023-06-01)
 
 
