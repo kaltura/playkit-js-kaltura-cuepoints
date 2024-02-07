@@ -381,7 +381,7 @@ export class VodProvider extends Provider {
   }
 
   private _filterCuePointsOutOfVideoRange(cuePoints: any[], seekFrom: number, clipTo: number): any[] {
-    return cuePoints.filter((cp: any) => cp.startTime >= seekFrom && (cp.endTime <= clipTo || cp.endTime === Number.MAX_SAFE_INTEGER));
+    return cuePoints.filter((cp: any) => cp.startTime >= seekFrom && cp.startTime < clipTo);
   }
 
   public destroy(): void {
