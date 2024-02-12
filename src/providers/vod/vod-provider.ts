@@ -359,12 +359,12 @@ export class VodProvider extends Provider {
     // TODO: add seekFrom and clipTo to player-config.d.ts file in kaltura-player
     // @ts-ignore
     const {seekFrom, clipTo} = this._player.sources;
-    if (cuePoints.length && typeof seekFrom === 'number' && clipTo) {
-      // video was clipped- the original cue-points times may not fit the new video
+    if (cuePoints.length && (seekFrom || clipTo)) {
+      // video was clipped - the original cue-points times may not fit the new video
       // filter cue-points that are out of the clipped video range
-      const filteredCuePoints = this._filterCuePointsOutOfVideoRange(cuePoints, seekFrom, clipTo);
+      const filteredCuePoints = this._filterCuePointsOutOfVideoRange(cuePoints, seekFrom || 0, clipTo);
       // move the cue-points by adjusting their start and end times
-      this._shiftCuePoints(filteredCuePoints, seekFrom);
+      this._shiftCuePoints(filteredCuePoints, seekFrom || 0);
       return filteredCuePoints;
     }
     return cuePoints;
@@ -380,8 +380,8 @@ export class VodProvider extends Provider {
     });
   }
 
-  private _filterCuePointsOutOfVideoRange(cuePoints: any[], seekFrom: number, clipTo: number): any[] {
-    return cuePoints.filter((cp: any) => cp.startTime >= seekFrom && (cp.endTime <= clipTo || cp.endTime === Number.MAX_SAFE_INTEGER));
+  private _filterCuePointsOutOfVideoRange(cuePoints: any[], seekFrom: number, clipTo: number | undefined): any[] {
+    return cuePoints.filter((cp: any) => cp.startTime >= seekFrom && (!clipTo || cp.startTime < clipTo));
   }
 
   public destroy(): void {
