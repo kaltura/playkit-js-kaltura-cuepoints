@@ -364,7 +364,7 @@ export class VodProvider extends Provider {
       // filter cue-points that are out of the clipped video range
       const filteredCuePoints = this._filterCuePointsOutOfVideoRange(cuePoints, seekFrom || 0, clipTo);
       // move the cue-points by adjusting their start and end times
-      this._shiftCuePoints(filteredCuePoints, seekFrom);
+      this._shiftCuePoints(filteredCuePoints, seekFrom || 0);
       return filteredCuePoints;
     }
     return cuePoints;
