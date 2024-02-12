@@ -166,6 +166,7 @@ export class VodProvider extends Provider {
             });
             // filter empty captions
             cuePoints = cuePoints.filter(cue => cue.text);
+            cuePoints = this._filterAndShiftCuePoints(cuePoints);
             this._addCuePointToPlayer(cuePoints);
             // mark captions as fetched
             this._fetchedCaptionKeys.push(captionKey);
@@ -372,10 +373,9 @@ export class VodProvider extends Provider {
 
   private _shiftCuePoints(cuePoints: any[], seekFrom: number): void {
     cuePoints.forEach((cp: any) => {
-      const offset = cp.startTime - seekFrom;
-      cp.startTime = offset;
+      cp.startTime = cp.startTime - seekFrom;
       if (cp.endTime !== Number.MAX_SAFE_INTEGER) {
-        cp.endTime = cp.endTime - offset;
+        cp.endTime = cp.endTime - seekFrom;
       }
     });
   }
