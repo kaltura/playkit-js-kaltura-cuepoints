@@ -18,6 +18,8 @@ import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
+import {HotspotLoader} from '../vod/hotspot-loader';
+import {KalturaHotspotCuePoint} from '../vod/response-types';
 
 export class LiveProvider extends Provider {
   private _pushNotification: PushNotificationPrivider;
@@ -37,6 +39,8 @@ export class LiveProvider extends Provider {
   private _thumbUrlIsLoaderActive = false;
   private _thumbUrlAssetIdQueue: Array<string> = [];
 
+  private _simuliveClipIds: Set<string>;
+
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
     this._pushNotification = new PushNotificationPrivider(this._player, this._logger);
@@ -46,6 +50,7 @@ export class LiveProvider extends Provider {
     this._constructPushNotificationListener();
     this._pushNotification.registerToPushServer(this._player.sources.id, types, this._handleConnection, this._handleConnectionError);
     this._addBindings();
+    this._simuliveClipIds = new Set();
   }
 
   private _makeCurrentTimeLiveReadyPromise = () => {
@@ -65,9 +70,18 @@ export class LiveProvider extends Provider {
     const id3TagCues = payload.cues.filter((cue: any) => cue.value && cue.value.key === 'TEXT');
     if (id3TagCues.length) {
       try {
-        const id3Timestamp = Math.ceil(JSON.parse(id3TagCues[id3TagCues.length - 1].value.data).timestamp / 1000);
+        const id3Data = JSON.parse(id3TagCues[id3TagCues.length - 1].value.data);
+
+        const id3Timestamp = Math.ceil(id3Data.timestamp / 1000);
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
+        }
+        if (id3Data.clipId) {
+          const [partType, originalEntryId, clipTimestamp] = id3Data.clipId.split('-');
+          if (!this._types.has(KalturaCuePointType.HOTSPOT) || partType !== 'content' || this._simuliveClipIds.has(originalEntryId)) return;
+
+          this._simuliveClipIds.add(originalEntryId);
+          this._addSimuliveCuepoints(clipTimestamp, originalEntryId);
         }
       } catch (e) {
         this._logger.debug('Failed retrieving id3 tag metadata');
@@ -110,7 +124,7 @@ export class LiveProvider extends Provider {
   };
 
   private _addBindings() {
-    this._eventManager.listen(this._player, this._player.Event.TIMED_METADATA, this._onTimedMetadataLoaded);
+    this._eventManager.listen(this._player, this._player.Event.TIMED_METADATA, e => this._onTimedMetadataLoaded(e));
     this._eventManager.listen(this._player, this._player.Event.SEEKING, this._handleSeeking);
     this._eventManager.listen(this._player, this._player.Event.TIME_UPDATE, this._onTimeUpdate);
   }
@@ -322,6 +336,78 @@ export class LiveProvider extends Provider {
     }
     if (this._types.has(KalturaCuePointType.CODE_QNA)) {
       this._pushNotification.off(PushNotificationEventTypes.CodeNotifications, this._handleCodeQnaNotificationsData);
+    }
+  }
+
+  _addSimuliveCuepoints(clipTimestamp: number, originalEntryId: string) {
+    const cueOffset = this._getSimuliveCuesOffset(clipTimestamp);
+    if (cueOffset === null) return;
+
+    this._player.provider.doRequest([{loader: HotspotLoader, params: {entryId: originalEntryId}}]).then((data: Map<string, any>) => {
+      if (!data) {
+        this._logger.warn("Simulive cue points doRequest doesn't have data");
+        return;
+      }
+      if (data.has(HotspotLoader.id)) {
+        this._handleSimuliveHostpotResponse(data, cueOffset);
+      }
+    });
+  }
+
+  _getSimuliveCuesOffset(clipTimestamp: number): number | null {
+    if (this._player.isOnLiveEdge()) {
+      const timeFromClipStart = Math.floor(Date.now() - clipTimestamp) / 1000;
+      const currentTime = Math.floor(this._player.currentTime);
+      return currentTime - timeFromClipStart + 20;
+    } else {
+      //@ts-ignore
+      const startTimeOfDvrWindow = this._player.getStartTimeOfDvrWindow();
+      //@ts-ignore
+      const id3Track = [...this._player.getVideoElement().textTracks].find(t => t.label === 'id3');
+
+      // this means we seeked back from live edge
+      // and have neither the live edge time nor the first cue time to compare the clip timestamp against
+      if (id3Track.cues[0].startTime !== startTimeOfDvrWindow) {
+        return null;
+      }
+
+      let firstClipTimestamp = -1;
+      for (const cue of id3Track.cues) {
+        try {
+          const data = JSON.parse(cue.value.data);
+          if (data.clipId) {
+            firstClipTimestamp = +data.clipId.split('-')[2];
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (firstClipTimestamp === -1) return null;
+
+      return startTimeOfDvrWindow + (clipTimestamp - firstClipTimestamp);
+    }
+  }
+
+  _handleSimuliveHostpotResponse(data: Map<string, any>, cuepointOffset: number) {
+    const createCuePointList = (hotspotCuePoints: Array<KalturaHotspotCuePoint>) => {
+      return hotspotCuePoints.map((hotspotCuePoint: KalturaHotspotCuePoint) => {
+        return {
+          id: hotspotCuePoint.id,
+          cuePointType: hotspotCuePoint.cuePointType,
+          text: hotspotCuePoint.text,
+          partnerData: hotspotCuePoint.partnerData,
+          startTime: hotspotCuePoint.startTime / 1000 + cuepointOffset,
+          endTime: hotspotCuePoint.endTime ? hotspotCuePoint.endTime / 1000 + cuepointOffset : Number.MAX_SAFE_INTEGER,
+          tags: hotspotCuePoint.tags
+        };
+      });
+    };
+    const hotspotCuePointsLoader: HotspotLoader = data.get(HotspotLoader.id);
+    let hotspotCuePoints: Array<KalturaHotspotCuePoint> = hotspotCuePointsLoader?.response.hotspotCuePoints || [];
+    this._logger.debug(`_handleSimuliveHostpotResponse hotspots response successful with ${hotspotCuePoints.length} cue points`);
+    if (hotspotCuePoints.length) {
+      const cuePoints = sortArrayBy(createCuePointList(hotspotCuePoints), 'startTime', 'createdAt');
+      this._addCuePointToPlayer(cuePoints);
     }
   }
 
