@@ -355,13 +355,13 @@ export class LiveProvider extends Provider {
   }
 
   _getSimuliveCuesOffset(clipTimestamp: number): number | null {
+    //@ts-ignore
+    const startTimeOfDvrWindow = this._player.getStartTimeOfDvrWindow();
     if (this._player.isOnLiveEdge()) {
       const timeFromClipStart = Math.floor(Date.now() - clipTimestamp) / 1000;
       const currentTime = Math.floor(this._player.currentTime);
-      return currentTime - timeFromClipStart + 20;
+      return startTimeOfDvrWindow + currentTime - timeFromClipStart + 20;
     } else {
-      //@ts-ignore
-      const startTimeOfDvrWindow = this._player.getStartTimeOfDvrWindow();
       //@ts-ignore
       const id3Track = [...this._player.getVideoElement().textTracks].find(t => t.label === 'id3');
 
