@@ -16,9 +16,14 @@ import {CaptionLoader} from './caption-loader';
 export class VodProvider extends Provider {
   private _fetchedCaptionKeys: Array<string> = [];
   private _fetchingCaptionKey: string | null = null;
+  private _cuePointsData: any[] = [];
+  private _lastTimeUpdated: number = 0;
+  private _isPreventSeekActive: boolean;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
+    // @ts-ignore
+    this._isPreventSeekActive = player.preventSeekOptions.isActive;
     this._addListeners();
     this._fetchVodData();
   }
@@ -29,6 +34,25 @@ export class VodProvider extends Provider {
       this._eventManager.listenOnce(this._player, this._player.Event.TEXT_TRACK_ADDED, this._handleLanguageChange);
       // handle change of caption track
       this._eventManager.listen(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
+    }
+    if (this._isPreventSeekActive) {
+      this._eventManager.listen(this._player, this._player.Event.TIME_UPDATE, () => this._onTimeUpdate());
+    }
+  }
+
+  private _onTimeUpdate(): void {
+    for (const cp of this._cuePointsData) {
+      const cpToAdd = cp.filter((c: { startTime: number; }) => c.startTime <= this._player.currentTime && c.startTime >= this._lastTimeUpdated);
+      this._addCuePointToPlayer(cpToAdd);
+    }
+    this._lastTimeUpdated = this._player.currentTime;
+  }
+
+  private _addCuePointsData(cp: any[]): void {
+    if (this._isPreventSeekActive) {
+      this._cuePointsData.push(cp);
+    } else {
+      this._addCuePointToPlayer(cp);
     }
   }
 
@@ -167,7 +191,7 @@ export class VodProvider extends Provider {
             // filter empty captions
             cuePoints = cuePoints.filter(cue => cue.text);
             cuePoints = this._filterAndShiftCuePoints(cuePoints);
-            this._addCuePointToPlayer(cuePoints);
+            this._addCuePointsData(cuePoints);
             // mark captions as fetched
             this._fetchedCaptionKeys.push(captionKey);
           }
@@ -250,7 +274,7 @@ export class VodProvider extends Provider {
       cuePoints = sortArrayBy(cuePoints, 'startTime');
       cuePoints = this._fixCuePointsEndTime(cuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
-      this._addCuePointToPlayer(cuePoints);
+      this._addCuePointsData(cuePoints);
     };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
@@ -327,7 +351,7 @@ export class VodProvider extends Provider {
       let cuePoints = createCuePointList(quizQuestionCuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
-      this._addCuePointToPlayer(cuePoints);
+      this._addCuePointsData(cuePoints);
     }
   }
 
@@ -352,7 +376,7 @@ export class VodProvider extends Provider {
       let cuePoints = createCuePointList(hotspotCuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
-      this._addCuePointToPlayer(cuePoints);
+      this._addCuePointsData(cuePoints);
     }
   }
 
@@ -388,5 +412,8 @@ export class VodProvider extends Provider {
     this._fetchedCaptionKeys = [];
     this._fetchingCaptionKey = null;
     this._removeListeners();
+    this._isPreventSeekActive = false;
+    this._cuePointsData = [];
+    this._lastTimeUpdated = 0;
   }
 }
