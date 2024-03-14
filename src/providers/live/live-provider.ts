@@ -76,12 +76,18 @@ export class LiveProvider extends Provider {
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
         }
-        if (id3Data.clipId) {
-          const [partType, originalEntryId, clipTimestamp] = id3Data.clipId.split('-');
+        if (id3Timestamp && id3Data.clipId) {
+          const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
           if (!this._types.has(KalturaCuePointType.HOTSPOT) || partType !== 'content' || this._simuliveClipIds.has(originalEntryId)) return;
 
           this._simuliveClipIds.add(originalEntryId);
-          this._addSimuliveCuepoints(clipTimestamp, originalEntryId);
+
+          // TODO can sample.pts !== cue start time ?
+          const firstClipStartTimestamp = id3Data.timestamp - id3TagCues[id3TagCues.length - 1].startTime;
+          // @ts-ignore
+          const cueOffset = this._player.getStartTimeOfDvrWindow() + (clipStartTimestamp - firstClipStartTimestamp) / 1000;
+
+          this._addSimuliveCuepoints(cueOffset, originalEntryId);
         }
       } catch (e) {
         this._logger.debug('Failed retrieving id3 tag metadata');
@@ -339,10 +345,7 @@ export class LiveProvider extends Provider {
     }
   }
 
-  _addSimuliveCuepoints(clipTimestamp: number, originalEntryId: string) {
-    const cueOffset = this._getSimuliveCuesOffset(clipTimestamp);
-    if (cueOffset === null) return;
-
+  _addSimuliveCuepoints(cueOffset: number, originalEntryId: string) {
     this._player.provider.doRequest([{loader: HotspotLoader, params: {entryId: originalEntryId}}]).then((data: Map<string, any>) => {
       if (!data) {
         this._logger.warn("Simulive cue points doRequest doesn't have data");
@@ -352,40 +355,6 @@ export class LiveProvider extends Provider {
         this._handleSimuliveHostpotResponse(data, cueOffset);
       }
     });
-  }
-
-  _getSimuliveCuesOffset(clipTimestamp: number): number | null {
-    //@ts-ignore
-    const startTimeOfDvrWindow = this._player.getStartTimeOfDvrWindow();
-    if (this._player.isOnLiveEdge()) {
-      const timeFromClipStart = Math.floor(Date.now() - clipTimestamp) / 1000;
-      const currentTime = Math.floor(this._player.currentTime);
-      return startTimeOfDvrWindow + currentTime - timeFromClipStart + 20;
-    } else {
-      //@ts-ignore
-      const id3Track = [...this._player.getVideoElement().textTracks].find(t => t.label === 'id3');
-
-      // this means we seeked back from live edge
-      // and have neither the live edge time nor the first cue time to compare the clip timestamp against
-      if (id3Track.cues[0].startTime !== startTimeOfDvrWindow) {
-        return null;
-      }
-
-      let firstClipTimestamp = -1;
-      for (const cue of id3Track.cues) {
-        try {
-          const data = JSON.parse(cue.value.data);
-          if (data.clipId) {
-            firstClipTimestamp = +data.clipId.split('-')[2];
-            break;
-          }
-        } catch (e) {}
-      }
-
-      if (firstClipTimestamp === -1) return null;
-
-      return startTimeOfDvrWindow + (clipTimestamp - firstClipTimestamp);
-    }
   }
 
   _handleSimuliveHostpotResponse(data: Map<string, any>, cuepointOffset: number) {
