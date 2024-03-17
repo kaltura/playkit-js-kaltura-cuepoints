@@ -20,17 +20,16 @@ export class VodProvider extends Provider {
   private _lastTimeUpdated: number = 0;
   private _isPreventSeekActive: boolean;
 
-  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
+  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap, isPreventSeekActive: boolean) {
     super(player, eventManager, logger, types);
-    // @ts-ignore
-    this._isPreventSeekActive = player.preventSeekOptions.isActive;
+    this._isPreventSeekActive = isPreventSeekActive;
     this._addListeners();
     this._fetchVodData();
   }
 
   private _addListeners() {
     if (this._types.has(KalturaCuePointType.CAPTION)) {
-      // handle non external text tracks (on init)
+      // handle non-external text tracks (on init)
       this._eventManager.listenOnce(this._player, this._player.Event.TEXT_TRACK_ADDED, this._handleLanguageChange);
       // handle change of caption track
       this._eventManager.listen(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
