@@ -76,17 +76,15 @@ export class LiveProvider extends Provider {
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
         }
-        if (id3Timestamp && id3Data.clipId) {
-          const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
-          if (!this._types.has(KalturaCuePointType.HOTSPOT) || partType !== 'content' || this._simuliveClipIds.has(originalEntryId)) return;
+
+        if (!this._types.has(KalturaCuePointType.HOTSPOT) || !id3Data.clipId || !id3Data.setId) return;
+
+        const [partType, originalEntryId] = id3Data.clipId.split('-');
+        if (!this._simuliveClipIds.has(originalEntryId)) {
+          const cueOffset = this._getSimuliveCueOffset(id3Data.timestamp, id3Data.setId, id3Data.clipId, id3TagCues[id3TagCues.length - 1].startTime);
+          if (cueOffset === null) return;
 
           this._simuliveClipIds.add(originalEntryId);
-
-          // TODO can sample.pts !== cue start time ?
-          const firstClipStartTimestamp = id3Data.timestamp - id3TagCues[id3TagCues.length - 1].startTime;
-          // @ts-ignore
-          const cueOffset = this._player.getStartTimeOfDvrWindow() + (clipStartTimestamp - firstClipStartTimestamp) / 1000;
-
           this._addSimuliveCuepoints(cueOffset, originalEntryId);
         }
       } catch (e) {
@@ -343,6 +341,23 @@ export class LiveProvider extends Provider {
     if (this._types.has(KalturaCuePointType.CODE_QNA)) {
       this._pushNotification.off(PushNotificationEventTypes.CodeNotifications, this._handleCodeQnaNotificationsData);
     }
+  }
+
+  private _getSimuliveCueOffset(timestamp: string, setId: string, clipId: string, cueStartTime: number): number | null {
+    const setIdData = setId.split(',').reduce((result: any, currValue: string) => {
+      const [key, value] = currValue.split('=');
+      return {
+        ...result,
+        [key]: value
+      };
+    }, {});
+
+    const [partType, originalEntryId, clipStartTimestamp] = clipId.split('-');
+    if (!clipStartTimestamp || setIdData.offset === undefined || partType !== 'content') return null;
+
+    const firstClipStartTimestamp = +timestamp - +setIdData.offset - cueStartTime * 1000;
+    // @ts-ignore
+    return this._player.getStartTimeOfDvrWindow() + (clipStartTimestamp - firstClipStartTimestamp) / 1000;
   }
 
   _addSimuliveCuepoints(cueOffset: number, originalEntryId: string) {
