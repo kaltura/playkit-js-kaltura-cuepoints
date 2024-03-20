@@ -20,9 +20,9 @@ export class VodProvider extends Provider {
   private _lastTimeUpdated: number = 0;
   private _isPreventSeekActive: boolean;
 
-  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap, isPreventSeekActive: boolean) {
+  constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
-    this._isPreventSeekActive = isPreventSeekActive;
+    this._isPreventSeekActive = player.ui.store.getState().seekbar.isPreventSeek;
     this._addListeners();
     this._fetchVodData();
   }
@@ -350,7 +350,7 @@ export class VodProvider extends Provider {
       let cuePoints = createCuePointList(quizQuestionCuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
-      this._addCuePointsData(cuePoints);
+      this._addCuePointToPlayer(cuePoints);
     }
   }
 
