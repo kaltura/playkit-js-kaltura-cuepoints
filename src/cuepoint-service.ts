@@ -83,5 +83,6 @@ export class CuepointService {
     this._mediaLoaded = false;
     this._types.clear();
     this._provider?.destroy();
+    this._isPreventSeekActive = false;
   }
 }
