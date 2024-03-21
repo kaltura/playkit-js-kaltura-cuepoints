@@ -1,5 +1,5 @@
-import {Provider} from '../provider';
-import {KalturaCuePointType, CuepointTypeMap} from '../../types';
+import {Provider, ProviderRequest} from '../provider';
+import {KalturaCuePointType, CuepointTypeMap, KalturaThumbCuePointSubType} from '../../types';
 import {
   PushNotificationPrivider,
   PushNotificationEventTypes,
@@ -18,8 +18,8 @@ import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {HotspotLoader} from '../vod/hotspot-loader';
-import {KalturaHotspotCuePoint} from '../vod/response-types';
+
+import {HotspotLoader, ThumbLoader} from '../vod/';
 
 export class LiveProvider extends Provider {
   private _pushNotification: PushNotificationPrivider;
@@ -70,22 +70,24 @@ export class LiveProvider extends Provider {
     const id3TagCues = payload.cues.filter((cue: any) => cue.value && cue.value.key === 'TEXT');
     if (id3TagCues.length) {
       try {
-        const id3Data = JSON.parse(id3TagCues[id3TagCues.length - 1].value.data);
+        const lastCue = id3TagCues[id3TagCues.length - 1];
+        const id3Data = JSON.parse(lastCue.value.data);
+        const {timestamp, clipId, setId} = id3Data;
 
-        const id3Timestamp = Math.ceil(id3Data.timestamp / 1000);
+        const id3Timestamp = Math.ceil(timestamp / 1000);
         if (id3Timestamp) {
           this._id3Timestamp = id3Timestamp;
         }
 
-        if (!this._types.has(KalturaCuePointType.HOTSPOT) || !id3Data.clipId || !id3Data.setId) return;
+        if (!clipId || !setId) return;
 
-        const [partType, originalEntryId] = id3Data.clipId.split('-');
+        const [partType, originalEntryId] = clipId.split('-');
         if (!this._simuliveClipIds.has(originalEntryId)) {
-          const cueOffset = this._getSimuliveCueOffset(id3Data.timestamp, id3Data.setId, id3Data.clipId, id3TagCues[id3TagCues.length - 1].startTime);
-          if (cueOffset === null) return;
+          const cuepointOffset = this._getSimuliveCuesOffset(timestamp, setId, clipId, lastCue.startTime);
+          if (cuepointOffset === null) return;
 
           this._simuliveClipIds.add(originalEntryId);
-          this._addSimuliveCuepoints(cueOffset, originalEntryId);
+          this._fetchSimuliveData(originalEntryId, cuepointOffset);
         }
       } catch (e) {
         this._logger.debug('Failed retrieving id3 tag metadata');
@@ -343,7 +345,7 @@ export class LiveProvider extends Provider {
     }
   }
 
-  private _getSimuliveCueOffset(timestamp: string, setId: string, clipId: string, cueStartTime: number): number | null {
+  private _getSimuliveCuesOffset(timestamp: string, setId: string, clipId: string, cueStartTime: number): number | null {
     const setIdData = setId.split(',').reduce((result: any, currValue: string) => {
       const [key, value] = currValue.split('=');
       return {
@@ -360,38 +362,40 @@ export class LiveProvider extends Provider {
     return this._player.getStartTimeOfDvrWindow() + (clipStartTimestamp - firstClipStartTimestamp) / 1000;
   }
 
-  _addSimuliveCuepoints(cueOffset: number, originalEntryId: string) {
-    this._player.provider.doRequest([{loader: HotspotLoader, params: {entryId: originalEntryId}}]).then((data: Map<string, any>) => {
-      if (!data) {
-        this._logger.warn("Simulive cue points doRequest doesn't have data");
-        return;
-      }
-      if (data.has(HotspotLoader.id)) {
-        this._handleSimuliveHostpotResponse(data, cueOffset);
-      }
-    });
-  }
+  private _fetchSimuliveData(originalEntryId: string, cuepointOffset: number) {
+    let thumbSubTypesFilter = '';
+    let requests: Array<ProviderRequest> = [];
 
-  _handleSimuliveHostpotResponse(data: Map<string, any>, cuepointOffset: number) {
-    const createCuePointList = (hotspotCuePoints: Array<KalturaHotspotCuePoint>) => {
-      return hotspotCuePoints.map((hotspotCuePoint: KalturaHotspotCuePoint) => {
-        return {
-          id: hotspotCuePoint.id,
-          cuePointType: hotspotCuePoint.cuePointType,
-          text: hotspotCuePoint.text,
-          partnerData: hotspotCuePoint.partnerData,
-          startTime: hotspotCuePoint.startTime / 1000 + cuepointOffset,
-          endTime: hotspotCuePoint.endTime ? hotspotCuePoint.endTime / 1000 + cuepointOffset : Number.MAX_SAFE_INTEGER,
-          tags: hotspotCuePoint.tags
-        };
-      });
-    };
-    const hotspotCuePointsLoader: HotspotLoader = data.get(HotspotLoader.id);
-    let hotspotCuePoints: Array<KalturaHotspotCuePoint> = hotspotCuePointsLoader?.response.hotspotCuePoints || [];
-    this._logger.debug(`_handleSimuliveHostpotResponse hotspots response successful with ${hotspotCuePoints.length} cue points`);
-    if (hotspotCuePoints.length) {
-      const cuePoints = sortArrayBy(createCuePointList(hotspotCuePoints), 'startTime', 'createdAt');
-      this._addCuePointToPlayer(cuePoints);
+    if (this._types.has(KalturaCuePointType.SLIDE)) {
+      thumbSubTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
+    }
+
+    if (thumbSubTypesFilter) {
+      requests.push({loader: ThumbLoader, params: {entryId: originalEntryId, subTypesFilter: thumbSubTypesFilter}});
+    }
+
+    if (this._types.has(KalturaCuePointType.HOTSPOT)) {
+      requests.push({loader: HotspotLoader, params: {entryId: originalEntryId}});
+    }
+
+    if (requests.length) {
+      this._player.provider
+        .doRequest(requests)
+        .then((data: Map<string, any>) => {
+          if (!data) {
+            this._logger.warn("Provider cue points doRequest doesn't have data");
+            return;
+          }
+          if (data.has(ThumbLoader.id)) {
+            this._handleThumbResponse(data, cuepointOffset);
+          }
+          if (data.has(HotspotLoader.id)) {
+            this._handleHotspotResponse(data, cuepointOffset);
+          }
+        })
+        .catch((e: any) => {
+          this._logger.warn('Provider cue points doRequest was rejected');
+        });
     }
   }
 
