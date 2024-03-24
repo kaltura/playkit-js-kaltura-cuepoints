@@ -353,7 +353,7 @@ export class LiveProvider extends Provider {
     }, {});
 
     const [partType, originalEntryId, clipStartTimestamp] = clipId.split('-');
-    if (!clipStartTimestamp || setIdData.offset === undefined || partType !== 'content') return null;
+    if (!clipStartTimestamp || setIdData.offset === undefined) return null;
 
     const firstClipStartTimestamp = +timestamp - +setIdData.offset - cueStartTime * 1000;
     // @ts-ignore
@@ -375,6 +375,8 @@ export class LiveProvider extends Provider {
   _handleSimuliveHostpotResponse(data: Map<string, any>, cuepointOffset: number) {
     const createCuePointList = (hotspotCuePoints: Array<KalturaHotspotCuePoint>) => {
       return hotspotCuePoints.map((hotspotCuePoint: KalturaHotspotCuePoint) => {
+        // console.log('>>> original cue start time:', hotspotCuePoint.startTime / 1000);
+        // console.log('>>> cue start time:', hotspotCuePoint.startTime / 1000 + cuepointOffset);
         return {
           id: hotspotCuePoint.id,
           cuePointType: hotspotCuePoint.cuePointType,
