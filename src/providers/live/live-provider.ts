@@ -375,8 +375,6 @@ export class LiveProvider extends Provider {
   _handleSimuliveHostpotResponse(data: Map<string, any>, cuepointOffset: number) {
     const createCuePointList = (hotspotCuePoints: Array<KalturaHotspotCuePoint>) => {
       return hotspotCuePoints.map((hotspotCuePoint: KalturaHotspotCuePoint) => {
-        // console.log('>>> original cue start time:', hotspotCuePoint.startTime / 1000);
-        // console.log('>>> cue start time:', hotspotCuePoint.startTime / 1000 + cuepointOffset);
         return {
           id: hotspotCuePoint.id,
           cuePointType: hotspotCuePoint.cuePointType,
