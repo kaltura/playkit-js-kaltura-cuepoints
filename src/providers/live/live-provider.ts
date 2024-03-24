@@ -353,7 +353,7 @@ export class LiveProvider extends Provider {
     }, {});
 
     const [partType, originalEntryId, clipStartTimestamp] = clipId.split('-');
-    if (!clipStartTimestamp || setIdData.offset === undefined || partType !== 'content') return null;
+    if (!clipStartTimestamp || setIdData.offset === undefined) return null;
 
     const firstClipStartTimestamp = +timestamp - +setIdData.offset - cueStartTime * 1000;
     // @ts-ignore
