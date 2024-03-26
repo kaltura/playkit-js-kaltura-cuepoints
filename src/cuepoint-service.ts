@@ -14,7 +14,6 @@ export class CuepointService {
   private _eventManager: EventManager;
   private _logger: Logger;
   private _mediaLoaded: boolean = false;
-  private _isPreventSeekActive: boolean = false;
 
   public get CuepointType() {
     return KalturaCuePointType;
@@ -45,10 +44,6 @@ export class CuepointService {
     });
   }
 
-  public setIsPreventSeekActive = (isPreventSeekActive: boolean): void => {
-    this._isPreventSeekActive = isPreventSeekActive;
-  };
-
   public registerTypes(types: KalturaCuePointType[]) {
     if (this._mediaLoaded) {
       this._logger.warn('Cue point registration should occur on loadMedia (or before)');
@@ -75,7 +70,7 @@ export class CuepointService {
     if (this._player.isLive()) {
       this._provider = new LiveProvider(this._player, this._eventManager, this._logger, this._types);
     } else {
-      this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types, this._isPreventSeekActive);
+      this._provider = new VodProvider(this._player, this._eventManager, this._logger, this._types);
     }
   }
 
