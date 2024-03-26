@@ -4,9 +4,8 @@ import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
 import {KalturaHotspotCuePoint, KalturaThumbCuePoint} from './vod/response-types';
-import {ThumbUrlLoader} from './common/thumb-url-loader';
+import {HotspotLoader, ThumbLoader, ThumbUrlLoader} from './common/';
 import {makeAssetUrl, generateThumb, sortArrayBy} from './utils';
-import {ThumbLoader, HotspotLoader} from './vod';
 
 export interface ProviderRequest {
   loader: Function;
@@ -55,7 +54,7 @@ export class Provider {
     }
   }
 
-  private _shiftCuePoints(cuePoints: any[], seekFrom: number): void {
+  protected _shiftCuePoints(cuePoints: any[], seekFrom: number): void {
     cuePoints.forEach((cp: any) => {
       cp.startTime = cp.startTime - seekFrom;
       if (cp.endTime !== Number.MAX_SAFE_INTEGER) {
@@ -86,6 +85,8 @@ export class Provider {
   protected _fixCuePointsEndTime<T extends {startTime: number; endTime: number}>(cuePoints: T[]) {
     return cuePoints.map((cuePoint, index) => {
       if (cuePoint.endTime === Number.MAX_SAFE_INTEGER) {
+        console.log('>>> _fixCuePointsEndTime');
+
         // aggregating cupoints with same startTime and setting them endTime of next future cuepoints
         let n = index + 1;
         while (cuePoints[n]) {
@@ -125,7 +126,8 @@ export class Provider {
         };
       });
       cuePoints = sortArrayBy(cuePoints, 'startTime');
-      cuePoints = this._fixCuePointsEndTime(cuePoints);
+      // TODO should this not be called for simulive ?
+      //cuePoints = this._fixCuePointsEndTime(cuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       this._addCuePointsData(cuePoints);
     };

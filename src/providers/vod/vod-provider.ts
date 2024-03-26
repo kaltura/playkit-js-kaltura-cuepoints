@@ -1,6 +1,6 @@
 import {Provider, ProviderRequest} from '../provider';
-import {ThumbLoader} from './thumb-loader';
-import {KalturaQuizQuestionCuePoint, KalturaCodeCuePoint, KalturaCaption} from './response-types';
+import {ThumbLoader} from '../common/thumb-loader';
+import {KalturaQuizQuestionCuePoint, KalturaThumbCuePoint, KalturaCodeCuePoint, KalturaHotspotCuePoint, KalturaCaption} from './response-types';
 import {KalturaCuePointType, KalturaThumbCuePointSubType, CuepointTypeMap} from '../../types';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
@@ -9,7 +9,7 @@ import KalturaCaptionSource = KalturaPlayerTypes.KalturaCaptionSource;
 import {sortArrayBy} from '../utils';
 import {ViewChangeLoader} from './view-change-loader';
 import {QuizQuestionLoader} from './quiz-question-loader';
-import {HotspotLoader} from './hotspot-loader';
+import {HotspotLoader} from '../common/hotspot-loader';
 import {CaptionLoader} from './caption-loader';
 
 export class VodProvider extends Provider {

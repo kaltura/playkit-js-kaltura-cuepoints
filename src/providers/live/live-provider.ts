@@ -14,12 +14,10 @@ import {
   SettingsNotificationsEvent
 } from './push-notifications-provider';
 import {makeAssetUrl, sortArrayBy} from '../utils';
-import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-
-import {HotspotLoader, ThumbLoader} from '../vod/';
+import {ThumbUrlLoader, ThumbLoader, HotspotLoader} from '../common';
 
 export class LiveProvider extends Provider {
   private _pushNotification: PushNotificationPrivider;
@@ -40,6 +38,7 @@ export class LiveProvider extends Provider {
   private _thumbUrlAssetIdQueue: Array<string> = [];
 
   private _simuliveClipIds: Set<string>;
+  private _currentClipStartTimestamp = -1;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -79,15 +78,37 @@ export class LiveProvider extends Provider {
           this._id3Timestamp = id3Timestamp;
         }
 
-        if (!clipId || !setId) return;
+        if (!id3Data.clipId || !id3Data.setId) return;
 
-        const [partType, originalEntryId] = clipId.split('-');
+        const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
         if (!this._simuliveClipIds.has(originalEntryId)) {
-          const cuepointOffset = this._getSimuliveCuesOffset(timestamp, setId, clipId, lastCue.startTime);
+          const cuepointOffset = this._getSimuliveCuepointOffset(
+            id3Data.timestamp,
+            id3Data.setId,
+            id3Data.clipId,
+            id3TagCues[id3TagCues.length - 1].startTime
+          );
           if (cuepointOffset === null) return;
 
+          // TODO check that endTime is updated
+          if (this._currentClipStartTimestamp < +clipStartTimestamp) {
+            this._currentClipStartTimestamp = +clipStartTimestamp;
+            for (const cue of [...(this._player.getVideoElement().textTracks as any)].find(t => t.label === 'CuePoints').activeCues) {
+              console.log('>>> found active cuepoint with endTime', cue.endTime);
+
+              if (cue.endTime === Number.MAX_SAFE_INTEGER) {
+                console.log('>>> clip has changed - updating unset end time to now');
+
+                // @ts-ignore
+
+                cue.endTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
+              }
+            }
+          }
+
+          // TODO save the response for the next time that the entry appears ?
           this._simuliveClipIds.add(originalEntryId);
-          this._fetchSimuliveData(originalEntryId, cuepointOffset);
+          this._addSimuliveCuepoints(originalEntryId, cuepointOffset);
         }
       } catch (e) {
         this._logger.debug('Failed retrieving id3 tag metadata');
@@ -345,7 +366,7 @@ export class LiveProvider extends Provider {
     }
   }
 
-  private _getSimuliveCuesOffset(timestamp: string, setId: string, clipId: string, cueStartTime: number): number | null {
+  private _getSimuliveCuepointOffset(timestamp: string, setId: string, clipId: string, cueStartTime: number): number | null {
     const setIdData = setId.split(',').reduce((result: any, currValue: string) => {
       const [key, value] = currValue.split('=');
       return {
@@ -362,14 +383,13 @@ export class LiveProvider extends Provider {
     return this._player.getStartTimeOfDvrWindow() + (clipStartTimestamp - firstClipStartTimestamp) / 1000;
   }
 
-  private _fetchSimuliveData(originalEntryId: string, cuepointOffset: number) {
-    let thumbSubTypesFilter = '';
+  private _addSimuliveCuepoints(originalEntryId: string, cuepointOffset: number) {
     let requests: Array<ProviderRequest> = [];
 
+    let thumbSubTypesFilter = '';
     if (this._types.has(KalturaCuePointType.SLIDE)) {
       thumbSubTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
     }
-
     if (thumbSubTypesFilter) {
       requests.push({loader: ThumbLoader, params: {entryId: originalEntryId, subTypesFilter: thumbSubTypesFilter}});
     }
@@ -378,25 +398,20 @@ export class LiveProvider extends Provider {
       requests.push({loader: HotspotLoader, params: {entryId: originalEntryId}});
     }
 
-    if (requests.length) {
-      this._player.provider
-        .doRequest(requests)
-        .then((data: Map<string, any>) => {
-          if (!data) {
-            this._logger.warn("Provider cue points doRequest doesn't have data");
-            return;
-          }
-          if (data.has(ThumbLoader.id)) {
-            this._handleThumbResponse(data, cuepointOffset);
-          }
-          if (data.has(HotspotLoader.id)) {
-            this._handleHotspotResponse(data, cuepointOffset);
-          }
-        })
-        .catch((e: any) => {
-          this._logger.warn('Provider cue points doRequest was rejected');
-        });
-    }
+    if (!requests.length) return;
+
+    this._player.provider.doRequest(requests).then((data: Map<string, any>) => {
+      if (!data) {
+        this._logger.warn("Simulive cue points doRequest doesn't have data");
+        return;
+      }
+      if (data.has(ThumbLoader.id)) {
+        this._handleThumbResponse(data, cuepointOffset);
+      }
+      if (data.has(HotspotLoader.id)) {
+        this._handleHotspotResponse(data, cuepointOffset);
+      }
+    });
   }
 
   destroy() {
