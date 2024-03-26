@@ -13,12 +13,14 @@ import {HotspotLoader} from './hotspot-loader';
 import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import {CaptionLoader} from './caption-loader';
 
+const TIME_UPDATE_DELTA: number = 0.4;
 export class VodProvider extends Provider {
   private _fetchedCaptionKeys: Array<string> = [];
   private _fetchingCaptionKey: string | null = null;
   private _cuePointsData: any[] = [];
-  private _lastTimeUpdated: number = 0;
   private _isPreventSeekActive: boolean;
+  private _maxCurrentSeekTime: number = 0;
+  private _lastTimeCuePointsPushed: number = 0;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -35,16 +37,27 @@ export class VodProvider extends Provider {
       this._eventManager.listen(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
     }
     if (this._isPreventSeekActive) {
-      this._eventManager.listen(this._player, this._player.Event.TIME_UPDATE, () => this._onTimeUpdate());
+      this._eventManager.listen(this._player, this._player.Event.TIME_UPDATE, this._onTimeUpdate);
     }
   }
 
-  private _onTimeUpdate(): void {
-    for (const cp of this._cuePointsData) {
-      const cpToAdd = cp.filter((c: { startTime: number; }) => c.startTime <= this._player.currentTime && c.startTime >= this._lastTimeUpdated);
-      this._addCuePointToPlayer(cpToAdd);
+  private _onTimeUpdate = (): void => {
+    if (this._maxCurrentSeekTime < this._player.currentTime) {
+      this._maxCurrentSeekTime = this._player.currentTime; // Update max current seek time
     }
-    this._lastTimeUpdated = this._player.currentTime;
+    if (this._player.currentTime - this._lastTimeCuePointsPushed >= TIME_UPDATE_DELTA) {
+      this._pushCuePointsToPlayer();
+      // Update the last time that cue points were pushed to player
+      this._lastTimeCuePointsPushed = this._player.currentTime;
+    }
+  };
+
+  private _pushCuePointsToPlayer(): void {
+    for (const cuePoints of this._cuePointsData) {
+      const time = Math.max(this._player.currentTime, this._maxCurrentSeekTime);
+      const cpToAdd = cuePoints?.filter((c: { startTime: number; }) => c.startTime <= time);
+      this._addCuePointToPlayer(cpToAdd || []);
+    }
   }
 
   private _addCuePointsData(cp: any[]): void {
@@ -59,6 +72,9 @@ export class VodProvider extends Provider {
     if (this._types.has(KalturaCuePointType.CAPTION)) {
       this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_ADDED, this._handleLanguageChange);
       this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
+    }
+    if (this._isPreventSeekActive) {
+      this._eventManager.unlisten(this._player, this._player.Event.TIME_UPDATE, this._onTimeUpdate);
     }
   }
 
@@ -150,9 +166,17 @@ export class VodProvider extends Provider {
     }
   };
 
+  private _maybeForcePushingCuePoints = () => {
+    if (this._isPreventSeekActive && this._player.paused) {
+      this._pushCuePointsToPlayer();
+    }
+  };
+
   private _loadCaptions = (captonSource: KalturaCaptionSource) => {
     const captionKey = `${captonSource.language}-${captonSource.label}`;
     if (this._fetchedCaptionKeys.includes(captionKey) || this._fetchingCaptionKey === captionKey) {
+      // after captions were switched, might need to manually push cue points
+      this._maybeForcePushingCuePoints();
       return; // prevent fetch captons if data already exist or fetching now
     }
     const match = captonSource.url.match('/captionAssetId/(.*?)(/|$)');
@@ -193,6 +217,8 @@ export class VodProvider extends Provider {
             this._addCuePointsData(cuePoints);
             // mark captions as fetched
             this._fetchedCaptionKeys.push(captionKey);
+            // after captions are loaded, might need to manually push cue points
+            this._maybeForcePushingCuePoints();
           }
         }
       })
@@ -413,6 +439,7 @@ export class VodProvider extends Provider {
     this._removeListeners();
     this._isPreventSeekActive = false;
     this._cuePointsData = [];
-    this._lastTimeUpdated = 0;
+    this._maxCurrentSeekTime = 0;
+    this._lastTimeCuePointsPushed = 0;
   }
 }
