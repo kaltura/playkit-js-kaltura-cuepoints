@@ -85,8 +85,6 @@ export class Provider {
   protected _fixCuePointsEndTime<T extends {startTime: number; endTime: number}>(cuePoints: T[]) {
     return cuePoints.map((cuePoint, index) => {
       if (cuePoint.endTime === Number.MAX_SAFE_INTEGER) {
-        console.log('>>> _fixCuePointsEndTime');
-
         // aggregating cupoints with same startTime and setting them endTime of next future cuepoints
         let n = index + 1;
         while (cuePoints[n]) {
@@ -126,8 +124,7 @@ export class Provider {
         };
       });
       cuePoints = sortArrayBy(cuePoints, 'startTime');
-      // TODO should this not be called for simulive ?
-      //cuePoints = this._fixCuePointsEndTime(cuePoints);
+      cuePoints = this._fixCuePointsEndTime(cuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       this._addCuePointsData(cuePoints);
     };

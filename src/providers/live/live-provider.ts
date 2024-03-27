@@ -37,8 +37,7 @@ export class LiveProvider extends Provider {
   private _thumbUrlIsLoaderActive = false;
   private _thumbUrlAssetIdQueue: Array<string> = [];
 
-  private _simuliveClipIds: Set<string>;
-  private _currentClipStartTimestamp = -1;
+  private _simuliveClipTimestamps: Set<string>;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -49,7 +48,7 @@ export class LiveProvider extends Provider {
     this._constructPushNotificationListener();
     this._pushNotification.registerToPushServer(this._player.sources.id, types, this._handleConnection, this._handleConnectionError);
     this._addBindings();
-    this._simuliveClipIds = new Set();
+    this._simuliveClipTimestamps = new Set();
   }
 
   private _makeCurrentTimeLiveReadyPromise = () => {
@@ -81,36 +80,50 @@ export class LiveProvider extends Provider {
         if (!id3Data.clipId || !id3Data.setId) return;
 
         const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
-        if (!this._simuliveClipIds.has(originalEntryId)) {
-          const cuepointOffset = this._getSimuliveCuepointOffset(
-            id3Data.timestamp,
-            id3Data.setId,
-            id3Data.clipId,
-            id3TagCues[id3TagCues.length - 1].startTime
-          );
-          if (cuepointOffset === null) return;
+        const cuepointOffset = this._getSimuliveCuepointOffset(
+          id3Data.timestamp,
+          id3Data.setId,
+          id3Data.clipId,
+          id3TagCues[id3TagCues.length - 1].startTime
+        );
+        if (cuepointOffset === null) return;
 
-          // TODO check that endTime is updated
-          if (this._currentClipStartTimestamp < +clipStartTimestamp) {
-            this._currentClipStartTimestamp = +clipStartTimestamp;
-            for (const cue of [...(this._player.getVideoElement().textTracks as any)].find(t => t.label === 'CuePoints').activeCues) {
-              console.log('>>> found active cuepoint with endTime', cue.endTime);
+        const textTracks = [...(this._player.getVideoElement().textTracks as any)];
+        const cuepointsTrack = textTracks.find(t => t.label === 'CuePoints');
 
-              if (cue.endTime === Number.MAX_SAFE_INTEGER) {
-                console.log('>>> clip has changed - updating unset end time to now');
+        // TODO Sivan what if we seek forward past a middle clip ?
+        const activeCues = cuepointsTrack?.activeCues;
 
-                // @ts-ignore
+        // if (this._prevClipTimestamp === -1) {
+        //   this._prevClipTimestamp = clipStartTimestamp;
+        // }
 
-                cue.endTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
-              }
+        // if (activeCues?.length && this._prevClipTimestamp !== clipStartTimestamp) {
+        //   this._prevClipTimestamp = clipStartTimestamp;
+
+        if (activeCues) {
+          for (const cue of activeCues) {
+            if (
+              // @ts-ignore
+              cue.startTime < this._player.getStartTimeOfDvrWindow() + cuepointOffset &&
+              // @ts-ignore
+              cue.endTime > this._player.getStartTimeOfDvrWindow() + cuepointOffset
+            ) {
+              // @ts-ignore
+              console.log('>>> adjusting cue endTime from', cue.endTime, 'to', this._player.getStartTimeOfDvrWindow() + cuepointOffset);
+
+              // @ts-ignore
+              cue.endTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
             }
           }
+        }
 
-          // TODO save the response for the next time that the entry appears ?
-          this._simuliveClipIds.add(originalEntryId);
+        if (!this._simuliveClipTimestamps.has(clipStartTimestamp)) {
+          this._simuliveClipTimestamps.add(clipStartTimestamp);
           this._addSimuliveCuepoints(originalEntryId, cuepointOffset);
         }
       } catch (e) {
+        debugger;
         this._logger.debug('Failed retrieving id3 tag metadata');
       }
     }
