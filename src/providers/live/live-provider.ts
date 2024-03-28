@@ -111,7 +111,6 @@ export class LiveProvider extends Provider {
           this._addSimuliveCuepoints(originalEntryId, cuepointOffset);
         }
       } catch (e) {
-        debugger;
         this._logger.debug('Failed retrieving id3 tag metadata');
       }
     }
