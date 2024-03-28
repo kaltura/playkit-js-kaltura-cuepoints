@@ -76,7 +76,7 @@ export class CuepointService {
 
   public reset(): void {
     this._mediaLoaded = false;
-    this._types.clear();
     this._provider?.destroy();
+    this._types.clear();
   }
 }
