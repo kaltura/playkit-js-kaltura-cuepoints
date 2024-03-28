@@ -53,19 +53,17 @@ export class VodProvider extends Provider {
   private _pushCuePointsToPlayer(): void {
     for (const pendingCuePoints of this._pendingCuePointsData) {
       let cpToAdd: any[] = [];
-      let amountToDelete = 0;
       for (let index = 0; index < pendingCuePoints.length; index++) {
         const cp = pendingCuePoints[index];
         if (Math.floor(cp.startTime) <= this._player.currentTime) {
           cpToAdd.push(cp);
-          amountToDelete++;
         } else {
           // next cue points will have greater start time, no need to continue the loop
           break;
         }
       }
       // remove cue points from pending array, that are going to be pushed
-      pendingCuePoints.splice(0, amountToDelete);
+      pendingCuePoints.splice(0, cpToAdd.length);
       this._addCuePointToPlayer(cpToAdd);
     }
   }
@@ -185,8 +183,6 @@ export class VodProvider extends Provider {
   private _loadCaptions = (captonSource: KalturaCaptionSource) => {
     const captionKey = `${captonSource.language}-${captonSource.label}`;
     if (this._fetchedCaptionKeys.includes(captionKey) || this._fetchingCaptionKey === captionKey) {
-      // after captions were switched, might need to manually push cue points
-      this._maybeForcePushingCuePoints();
       return; // prevent fetch captons if data already exist or fetching now
     }
     const match = captonSource.url.match('/captionAssetId/(.*?)(/|$)');
