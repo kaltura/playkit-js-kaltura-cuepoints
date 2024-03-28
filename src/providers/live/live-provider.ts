@@ -90,16 +90,7 @@ export class LiveProvider extends Provider {
 
         const textTracks = [...(this._player.getVideoElement().textTracks as any)];
         const cuepointsTrack = textTracks.find(t => t.label === 'CuePoints');
-
-        // TODO Sivan what if we seek forward past a middle clip ?
         const activeCues = cuepointsTrack?.activeCues;
-
-        // if (this._prevClipTimestamp === -1) {
-        //   this._prevClipTimestamp = clipStartTimestamp;
-        // }
-
-        // if (activeCues?.length && this._prevClipTimestamp !== clipStartTimestamp) {
-        //   this._prevClipTimestamp = clipStartTimestamp;
 
         if (activeCues) {
           for (const cue of activeCues) {
@@ -109,9 +100,6 @@ export class LiveProvider extends Provider {
               // @ts-ignore
               cue.endTime > this._player.getStartTimeOfDvrWindow() + cuepointOffset
             ) {
-              // @ts-ignore
-              console.log('>>> adjusting cue endTime from', cue.endTime, 'to', this._player.getStartTimeOfDvrWindow() + cuepointOffset);
-
               // @ts-ignore
               cue.endTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
             }
