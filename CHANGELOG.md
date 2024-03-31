@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.9 (2024-03-31)
+
+
+### Bug Fixes
+
+* **FEC-13789:** show hotspots for pre and post entries ([75c0fe9](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/75c0fe9))
+
+
+
 ### 3.0.8 (2024-02-25)
 
 
