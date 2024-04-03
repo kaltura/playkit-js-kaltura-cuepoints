@@ -94,14 +94,11 @@ export class LiveProvider extends Provider {
 
         if (activeCues) {
           for (const cue of activeCues) {
-            if (
-              // @ts-ignore
-              cue.startTime < this._player.getStartTimeOfDvrWindow() + cuepointOffset &&
-              // @ts-ignore
-              cue.endTime > this._player.getStartTimeOfDvrWindow() + cuepointOffset
-            ) {
-              // @ts-ignore
-              cue.endTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
+            // @ts-ignore
+            const nextClipStartTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
+
+            if (cue.startTime < nextClipStartTime && cue.endTime > nextClipStartTime) {
+              cue.endTime = nextClipStartTime;
             }
           }
         }
