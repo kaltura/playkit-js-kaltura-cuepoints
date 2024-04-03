@@ -18,7 +18,6 @@ export class Provider {
   protected _logger: Logger;
   public cuePointManager: CuePointManager | null = null;
   protected _cuePointsData: any[] = [];
-  protected _isPreventSeekActive: boolean = false;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     this._types = types;
@@ -47,11 +46,7 @@ export class Provider {
   }
 
   protected _addCuePointsData(cp: any[]): void {
-    if (this._isPreventSeekActive) {
-      this._cuePointsData.push(cp);
-    } else {
-      this._addCuePointToPlayer(cp);
-    }
+    this._addCuePointToPlayer(cp);
   }
 
   protected _shiftCuePoints(cuePoints: any[], seekFrom: number): void {
