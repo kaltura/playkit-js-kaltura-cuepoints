@@ -13,16 +13,15 @@ import {HotspotLoader} from './hotspot-loader';
 import {ThumbUrlLoader} from '../common/thumb-url-loader';
 import {CaptionLoader} from './caption-loader';
 
+const TIME_UPDATE_DELTA_MS: number = 400;
 export class VodProvider extends Provider {
   private _fetchedCaptionKeys: Array<string> = [];
   private _fetchingCaptionKey: string | null = null;
-  private _cuePointsData: any[] = [];
-  private _lastTimeUpdated: number = 0;
-  private _isPreventSeekActive: boolean;
+  private _pendingCuePointsData: any[] = [];
+  private _lastPositionCuePointsPushed: number = 0;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
-    this._isPreventSeekActive = player.ui.store.getState().seekbar.isPreventSeek;
     this._addListeners();
     this._fetchVodData();
   }
@@ -34,22 +33,44 @@ export class VodProvider extends Provider {
       // handle change of caption track
       this._eventManager.listen(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
     }
-    if (this._isPreventSeekActive) {
-      this._eventManager.listen(this._player, this._player.Event.TIME_UPDATE, () => this._onTimeUpdate());
+    if (this._isPreventSeek()) {
+      this._eventManager.listen(this._player, this._player.Event.TIME_UPDATE, this._onTimeUpdate);
     }
   }
 
-  private _onTimeUpdate(): void {
-    for (const cp of this._cuePointsData) {
-      const cpToAdd = cp.filter((c: { startTime: number; }) => c.startTime <= this._player.currentTime && c.startTime >= this._lastTimeUpdated);
+  private _isPreventSeek(): boolean {
+    return this._player.ui.store.getState().seekbar.isPreventSeek;
+  }
+
+  private _onTimeUpdate = (): void => {
+    if (this._player.currentTime * 1000 - this._lastPositionCuePointsPushed >= TIME_UPDATE_DELTA_MS) {
+      this._pushCuePointsToPlayer();
+      // Update the last time that cue points were pushed to player
+      this._lastPositionCuePointsPushed = this._player.currentTime * 1000;
+    }
+  };
+
+  private _pushCuePointsToPlayer(): void {
+    for (const pendingCuePoints of this._pendingCuePointsData) {
+      let cpToAdd: any[] = [];
+      for (let index = 0; index < pendingCuePoints.length; index++) {
+        const cp = pendingCuePoints[index];
+        if (Math.floor(cp.startTime) <= this._player.currentTime) {
+          cpToAdd.push(cp);
+        } else {
+          // next cue points will have greater start time, no need to continue the loop
+          break;
+        }
+      }
+      // remove cue points from pending array, that are going to be pushed
+      pendingCuePoints.splice(0, cpToAdd.length);
       this._addCuePointToPlayer(cpToAdd);
     }
-    this._lastTimeUpdated = this._player.currentTime;
   }
 
   private _addCuePointsData(cp: any[]): void {
-    if (this._isPreventSeekActive) {
-      this._cuePointsData.push(cp);
+    if (this._isPreventSeek()) {
+      this._pendingCuePointsData.push(cp);
     } else {
       this._addCuePointToPlayer(cp);
     }
@@ -59,6 +80,9 @@ export class VodProvider extends Provider {
     if (this._types.has(KalturaCuePointType.CAPTION)) {
       this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_ADDED, this._handleLanguageChange);
       this._eventManager.unlisten(this._player, this._player.Event.TEXT_TRACK_CHANGED, this._handleLanguageChange);
+    }
+    if (this._isPreventSeek()) {
+      this._eventManager.unlisten(this._player, this._player.Event.TIME_UPDATE, this._onTimeUpdate);
     }
   }
 
@@ -150,6 +174,12 @@ export class VodProvider extends Provider {
     }
   };
 
+  private _maybeForcePushingCuePoints = () => {
+    if (this._isPreventSeek() && this._player.paused) {
+      this._pushCuePointsToPlayer();
+    }
+  };
+
   private _loadCaptions = (captonSource: KalturaCaptionSource) => {
     const captionKey = `${captonSource.language}-${captonSource.label}`;
     if (this._fetchedCaptionKeys.includes(captionKey) || this._fetchingCaptionKey === captionKey) {
@@ -193,6 +223,8 @@ export class VodProvider extends Provider {
             this._addCuePointsData(cuePoints);
             // mark captions as fetched
             this._fetchedCaptionKeys.push(captionKey);
+            // after captions are loaded, might need to manually push cue points
+            this._maybeForcePushingCuePoints();
           }
         }
       })
@@ -411,8 +443,7 @@ export class VodProvider extends Provider {
     this._fetchedCaptionKeys = [];
     this._fetchingCaptionKey = null;
     this._removeListeners();
-    this._isPreventSeekActive = false;
-    this._cuePointsData = [];
-    this._lastTimeUpdated = 0;
+    this._pendingCuePointsData = [];
+    this._lastPositionCuePointsPushed = 0;
   }
 }
