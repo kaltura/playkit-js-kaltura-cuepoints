@@ -17,7 +17,6 @@ export class Provider {
   protected _eventManager: EventManager;
   protected _logger: Logger;
   public cuePointManager: CuePointManager | null = null;
-  protected _cuePointsData: any[] = [];
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     this._types = types;
@@ -209,7 +208,5 @@ export class Provider {
     if (this.cuePointManager) {
       this.cuePointManager.destroy();
     }
-
-    this._cuePointsData = [];
   }
 }
