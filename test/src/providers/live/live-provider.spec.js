@@ -124,13 +124,14 @@ describe('Check Live provider', () => {
     it('should test prepareThumbCuePoints method', () => {
       const addCuePoints = sinon.spy();
       liveProvider._player = {
+        isDvr: () => true,
         currentTime: 5,
         config: {session: {ks: 'test_ks'}},
         provider: {env: {serviceUrl: 'test_url'}},
         cuePointManager: {addCuePoints}
       };
       liveProvider._currentTimeLive = 100;
-      liveProvider._baseThumbAssetUrl = "http://test.te/thumbAssetId/1_initialId/test_ks"
+      liveProvider._baseThumbAssetUrl = 'http://test.te/thumbAssetId/1_initialId/test_ks';
       liveProvider._prepareThumbCuePoints({
         id: '1_test',
         assetId: 'test_id',
@@ -166,7 +167,8 @@ describe('Check Live provider', () => {
       const addCuePoints = sinon.spy();
       liveProvider._player = {
         currentTime: 5,
-        cuePointManager: {addCuePoints}
+        cuePointManager: {addCuePoints},
+        isDvr: () => true
       };
       liveProvider._currentTimeLive = 100;
       liveProvider._prepareViewChangeCuePoints({
