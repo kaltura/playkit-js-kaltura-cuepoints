@@ -6,7 +6,6 @@ import EventManager = KalturaPlayerTypes.EventManager;
 import {KalturaHotspotCuePoint, KalturaThumbCuePoint} from './vod/response-types';
 import {HotspotLoader, ThumbLoader, ThumbUrlLoader} from './common/';
 import {makeAssetUrl, generateThumb, sortArrayBy} from './utils';
-import {DataAggregator} from './dataAggregator';
 
 export interface ProviderRequest {
   loader: Function;
@@ -18,7 +17,6 @@ export class Provider {
   protected _eventManager: EventManager;
   protected _logger: Logger;
   public cuePointManager: CuePointManager | null = null;
-  private _dataAggregator: DataAggregator | null = null;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     this._types = types;
@@ -26,23 +24,6 @@ export class Provider {
     this._player = player;
     this._eventManager = eventManager;
     this._logger = logger;
-    if (this._useDataAggregator()) {
-      // for live entry without DVR use additional processing of cues (filter out cues behind Live Edge)
-      const onTimeoutFn = (collectedData: CuePoint[]) => {
-        // filter out duplicates
-        const collectedDataMap = new Map();
-        collectedData.forEach(cuePoint => {
-          collectedDataMap.set(cuePoint.id, cuePoint);
-        });
-        // for stream witout DVR filter out cues behind Live Edge
-        collectedDataMap.forEach(cue => {
-          if (cue.endTime === Number.MAX_SAFE_INTEGER) {
-            this._player.cuePointManager.addCuePoints([cue]);
-          }
-        });
-      };
-      this._dataAggregator = new DataAggregator({onTimeoutFn});
-    }
   }
 
   protected _addCuePointToPlayer(cuePoints: any[]) {
@@ -58,10 +39,6 @@ export class Provider {
         this.cuePointManager = new CuePointManager(this._player, this._eventManager);
       }
       this.cuePointManager.addCuePoints(playerCuePoints);
-    } else if (this._dataAggregator) {
-      playerCuePoints.forEach(cuePoint => {
-        this._dataAggregator!.addData(cuePoint);
-      });
     } else {
       this._player.cuePointManager.addCuePoints(playerCuePoints);
     }
@@ -227,17 +204,9 @@ export class Provider {
     }
   }
 
-  private _useDataAggregator() {
-    return this._player.isLive() && !this._player.isDvr();
-  }
-
   public destroy() {
     if (this.cuePointManager) {
       this.cuePointManager.destroy();
-    }
-    if (this._dataAggregator) {
-      this._dataAggregator.destroy();
-      this._dataAggregator = null;
     }
   }
 }
