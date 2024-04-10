@@ -174,14 +174,8 @@ export class LiveProvider extends Provider {
   }
 
   private _makeCuePointStartEndTime = (cuePointCreatedAt: number, cuePointEndTime?: number) => {
-    let startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
+    const startTime = this._player.currentTime - (this._currentTimeLive - cuePointCreatedAt);
     const endTime = cuePointEndTime ? this._player.currentTime - (this._currentTimeLive - cuePointEndTime) : Number.MAX_SAFE_INTEGER;
-    if (!this._player.isDvr()) {
-      const isCuePointBehindLiveEdge = this._currentTimeLive - cuePointCreatedAt > 0;
-      if (isCuePointBehindLiveEdge) {
-        startTime = this._player.currentTime;
-      }
-    }
     return {startTime, endTime};
   };
 
