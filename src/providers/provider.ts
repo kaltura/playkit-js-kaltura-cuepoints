@@ -45,7 +45,7 @@ export class Provider {
     }
   }
 
-  protected _addCuePointToPlayer(cuePoints: any[]) {
+  protected _addCuePointToPlayer(cuePoints: any[], useDataAggregator = Boolean(this._dataAggregator)) {
     if (!cuePoints.length) {
       return;
     }
@@ -58,7 +58,7 @@ export class Provider {
         this.cuePointManager = new CuePointManager(this._player, this._eventManager);
       }
       this.cuePointManager.addCuePoints(playerCuePoints);
-    } else if (this._dataAggregator) {
+    } else if (useDataAggregator) {
       playerCuePoints.forEach(cuePoint => {
         this._dataAggregator!.addData(cuePoint);
       });
@@ -67,8 +67,8 @@ export class Provider {
     }
   }
 
-  protected _addCuePointsData(cp: any[]): void {
-    this._addCuePointToPlayer(cp);
+  protected _addCuePointsData(cp: any[], useDataAggregator = false): void {
+    this._addCuePointToPlayer(cp, useDataAggregator);
   }
 
   protected _shiftCuePoints(cuePoints: any[], seekFrom: number): void {
@@ -143,7 +143,7 @@ export class Provider {
       cuePoints = sortArrayBy(cuePoints, 'startTime');
       cuePoints = this._fixCuePointsEndTime(cuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
-      this._addCuePointsData(cuePoints);
+      this._addCuePointsData(cuePoints, false);
     };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
@@ -223,7 +223,7 @@ export class Provider {
       let cuePoints = createCuePointList(hotspotCuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
-      this._addCuePointsData(cuePoints);
+      this._addCuePointsData(cuePoints, false);
     }
   }
 
