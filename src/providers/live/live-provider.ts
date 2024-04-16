@@ -77,7 +77,9 @@ export class LiveProvider extends Provider {
           this._id3Timestamp = id3Timestamp;
         }
 
-        if (!id3Data.clipId || !id3Data.setId) return;
+        if (!id3Data.clipId || !id3Data.setId) {
+          return;
+        }
 
         const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
         const cuepointOffset = this._getSimuliveCuepointOffset(
@@ -86,7 +88,9 @@ export class LiveProvider extends Provider {
           id3Data.clipId,
           id3TagCues[id3TagCues.length - 1].startTime
         );
-        if (cuepointOffset === null) return;
+        if (cuepointOffset === null) {
+          return;
+        }
 
         const textTracks = [...(this._player.getVideoElement().textTracks as any)];
         const cuepointsTrack = textTracks.find(t => t.label === 'CuePoints');
@@ -401,7 +405,9 @@ export class LiveProvider extends Provider {
       requests.push({loader: HotspotLoader, params: {entryId: originalEntryId}});
     }
 
-    if (!requests.length) return;
+    if (!requests.length) {
+      return;
+    }
 
     this._player.provider.doRequest(requests).then((data: Map<string, any>) => {
       if (!data) {
@@ -409,10 +415,10 @@ export class LiveProvider extends Provider {
         return;
       }
       if (data.has(ThumbLoader.id)) {
-        this._handleThumbResponse(data, cuepointOffset);
+        this._handleThumbResponse(data, {cuepointOffset, useDataAggregator: false, usePendingQueManager: true});
       }
       if (data.has(HotspotLoader.id)) {
-        this._handleHotspotResponse(data, cuepointOffset);
+        this._handleHotspotResponse(data, {cuepointOffset, useDataAggregator: false, usePendingQueManager: true});
       }
     });
   }

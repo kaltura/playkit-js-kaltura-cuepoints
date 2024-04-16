@@ -6,11 +6,12 @@ interface DataAggregatorProps {
 export class DataAggregator {
   private _data: any[] = [];
   private _timerId: NodeJS.Timeout | null = null;
-  private _throttleTimeout = 250;
+  private _throttleTimeout: number;
   private _onTimeoutFn: (data: any) => void;
 
   constructor(options: DataAggregatorProps) {
     this._onTimeoutFn = options.onTimeoutFn;
+    this._throttleTimeout = options.throttleTimeout || 350;
   }
 
   public addData(data: any): void {
