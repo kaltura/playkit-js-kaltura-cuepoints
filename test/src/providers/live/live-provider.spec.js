@@ -128,7 +128,12 @@ describe('Check Live provider', () => {
         currentTime: 5,
         config: {session: {ks: 'test_ks'}},
         provider: {env: {serviceUrl: 'test_url'}},
-        cuePointManager: {addCuePoints}
+        cuePointManager: {addCuePoints},
+        ui: {
+          store: {
+            getState: () => ({seekbar: {isPreventSeek: false}})
+          }
+        }
       };
       liveProvider._currentTimeLive = 100;
       liveProvider._baseThumbAssetUrl = 'http://test.te/thumbAssetId/1_initialId/test_ks';
@@ -168,7 +173,12 @@ describe('Check Live provider', () => {
       liveProvider._player = {
         currentTime: 5,
         cuePointManager: {addCuePoints},
-        isDvr: () => true
+        isDvr: () => true,
+        ui: {
+          store: {
+            getState: () => ({seekbar: {isPreventSeek: false}})
+          }
+        }
       };
       liveProvider._currentTimeLive = 100;
       liveProvider._prepareViewChangeCuePoints({
