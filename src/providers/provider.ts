@@ -6,7 +6,13 @@ import EventManager = KalturaPlayerTypes.EventManager;
 import {KalturaHotspotCuePoint, KalturaThumbCuePoint} from './vod/response-types';
 import {HotspotLoader, ThumbLoader, ThumbUrlLoader} from './common/';
 import {makeAssetUrl, generateThumb, sortArrayBy} from './utils';
-import {DataAggregator} from './dataAggregator';
+import {DataAggregator} from './data-aggregator';
+import {PendingCuesManager} from './pending-cues-manager';
+
+export interface AddCuePointToPlayerOptions {
+  useDataAggregator?: boolean;
+  usePendingQueManager?: boolean;
+}
 
 export interface ProviderRequest {
   loader: Function;
@@ -19,6 +25,7 @@ export class Provider {
   protected _logger: Logger;
   public cuePointManager: CuePointManager | null = null;
   private _dataAggregator: DataAggregator | null = null;
+  private _pendingCuesManager: PendingCuesManager | null = null;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     this._types = types;
@@ -26,26 +33,19 @@ export class Provider {
     this._player = player;
     this._eventManager = eventManager;
     this._logger = logger;
-    if (this._useDataAggregator()) {
+
+    if (this._player.isLive() && !this._player.isDvr()) {
       // for live entry without DVR use additional processing of cues (filter out cues behind Live Edge)
-      const onTimeoutFn = (collectedData: CuePoint[]) => {
-        // filter out duplicates
-        const collectedDataMap = new Map();
-        collectedData.forEach(cuePoint => {
-          collectedDataMap.set(cuePoint.id, cuePoint);
-        });
-        // for stream witout DVR filter out cues behind Live Edge
-        collectedDataMap.forEach(cue => {
-          if (cue.endTime === Number.MAX_SAFE_INTEGER) {
-            this._player.cuePointManager.addCuePoints([cue]);
-          }
-        });
-      };
-      this._dataAggregator = new DataAggregator({onTimeoutFn});
+      this._initDataAggregator();
     }
+
+    this._pendingCuesManager = new PendingCuesManager({player: this._player, eventManager: this._eventManager});
   }
 
-  protected _addCuePointToPlayer(cuePoints: any[], useDataAggregator = Boolean(this._dataAggregator)) {
+  protected _addCuePointToPlayer(
+    cuePoints: any[],
+    {useDataAggregator = Boolean(this._dataAggregator), usePendingQueManager = this._isPreventSeek()}: AddCuePointToPlayerOptions = {}
+  ) {
     if (!cuePoints.length) {
       return;
     }
@@ -62,13 +62,11 @@ export class Provider {
       playerCuePoints.forEach(cuePoint => {
         this._dataAggregator!.addData(cuePoint);
       });
+    } else if (usePendingQueManager) {
+      this._pendingCuesManager?.addCuePoint(playerCuePoints);
     } else {
       this._player.cuePointManager.addCuePoints(playerCuePoints);
     }
-  }
-
-  protected _addCuePointsData(cp: any[], useDataAggregator = false): void {
-    this._addCuePointToPlayer(cp, useDataAggregator);
   }
 
   protected _shiftCuePoints(cuePoints: any[], seekFrom: number): void {
@@ -118,7 +116,7 @@ export class Provider {
     });
   }
 
-  protected _handleThumbResponse(data: Map<string, any>, cuepointOffset: number = 0) {
+  protected _handleThumbResponse(data: Map<string, any>, {cuepointOffset = 0, ...options}: any = {}) {
     const replaceAssetUrl = (baseThumbAssetUrl: string) => (thumbCuePoint: KalturaThumbCuePoint) => {
       return makeAssetUrl(baseThumbAssetUrl, thumbCuePoint.assetId);
     };
@@ -143,7 +141,7 @@ export class Provider {
       cuePoints = sortArrayBy(cuePoints, 'startTime');
       cuePoints = this._fixCuePointsEndTime(cuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
-      this._addCuePointsData(cuePoints, false);
+      this._addCuePointToPlayer(cuePoints, options);
     };
     const thumbCuePointsLoader: ThumbLoader = data.get(ThumbLoader.id);
     const thumbCuePoints: Array<KalturaThumbCuePoint> = thumbCuePointsLoader?.response.thumbCuePoints || [];
@@ -202,7 +200,7 @@ export class Provider {
     }
   }
 
-  protected _handleHotspotResponse(data: Map<string, any>, cuepointOffset: number = 0) {
+  protected _handleHotspotResponse(data: Map<string, any>, {cuepointOffset = 0, ...options}: any = {}) {
     const createCuePointList = (hotspotCuePoints: Array<KalturaHotspotCuePoint>) => {
       return hotspotCuePoints.map((hotspotCuePoint: KalturaHotspotCuePoint) => {
         return {
@@ -223,12 +221,35 @@ export class Provider {
       let cuePoints = createCuePointList(hotspotCuePoints);
       cuePoints = this._filterAndShiftCuePoints(cuePoints);
       cuePoints = sortArrayBy(cuePoints, 'startTime', 'createdAt');
-      this._addCuePointsData(cuePoints, false);
+      this._addCuePointToPlayer(cuePoints, options);
     }
   }
 
-  private _useDataAggregator() {
-    return this._player.isLive() && !this._player.isDvr();
+  protected _isPreventSeek(): boolean {
+    return this._player.ui.store.getState().seekbar.isPreventSeek;
+  }
+
+  protected _maybeForcePushingCuePoints = () => {
+    if (this._isPreventSeek() && this._player.paused) {
+      this._pendingCuesManager?.checkCues();
+    }
+  };
+
+  private _initDataAggregator() {
+    const onTimeoutFn = (collectedData: CuePoint[]) => {
+      // filter out duplicates
+      const collectedDataMap = new Map();
+      collectedData.forEach(cuePoint => {
+        collectedDataMap.set(cuePoint.id, cuePoint);
+      });
+      // for stream witout DVR filter out cues behind Live Edge
+      collectedDataMap.forEach(cue => {
+        if (cue.endTime === Number.MAX_SAFE_INTEGER) {
+          this._player.cuePointManager.addCuePoints([cue]);
+        }
+      });
+    };
+    this._dataAggregator = new DataAggregator({onTimeoutFn});
   }
 
   public destroy() {
@@ -238,6 +259,10 @@ export class Provider {
     if (this._dataAggregator) {
       this._dataAggregator.destroy();
       this._dataAggregator = null;
+    }
+    if (this._pendingCuesManager) {
+      this._pendingCuesManager.destroy();
+      this._pendingCuesManager = null;
     }
   }
 }
