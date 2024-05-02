@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.12 (2024-05-02)
+
+
+### Bug Fixes
+
+* **FEC-13786:** Use pending-cues manager for simulive ([#72](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/72)) ([733beee](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/733beee))
+
+
+
 ### 3.0.11 (2024-04-10)
 
 
