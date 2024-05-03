@@ -246,7 +246,7 @@ export class LiveProvider extends Provider {
       startTime: 0,
       endTime: 0
     };
-    this._addCuePointToPlayer([userQnaCuePoint]);
+    this._addCuePointToPlayer([userQnaCuePoint], {useDataAggregator: false});
   };
 
   private _prepareCodeQnaCuePoints = (setting: QnaPushNotificationData) => {
