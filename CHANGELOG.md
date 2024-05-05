@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.13 (2024-05-05)
+
+
+### Bug Fixes
+
+* **FEC-13905:** don't use data aggregator for user qna cues ([#73](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/73)) ([b992e33](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/b992e33))
+
+
+
 ### 3.0.12 (2024-05-02)
 
 
