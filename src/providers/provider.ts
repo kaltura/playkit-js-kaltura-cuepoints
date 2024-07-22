@@ -3,7 +3,7 @@ import {CuePointManager} from '../cuepoint-manager';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
 import EventManager = KalturaPlayerTypes.EventManager;
-import {KalturaHotspotCuePoint, KalturaThumbCuePoint} from './vod/response-types';
+import {KalturaCuePoint, KalturaHotspotCuePoint, KalturaThumbCuePoint} from './vod/response-types';
 import {HotspotLoader, ThumbLoader, ThumbUrlLoader} from './common/';
 import {makeAssetUrl, generateThumb, sortArrayBy} from './utils';
 import {DataAggregator} from './data-aggregator';
@@ -60,6 +60,9 @@ export class Provider {
       this.cuePointManager.addCuePoints(playerCuePoints);
     } else if (useDataAggregator) {
       playerCuePoints.forEach(cuePoint => {
+        if (cuePoint.metadata.cuePointType === KalturaCuePoint.KalturaCuePointType.CODE){
+          this._player.cuePointManager.addCuePoints(playerCuePoints);
+        }
         this._dataAggregator!.addData(cuePoint);
       });
     } else if (usePendingQueManager) {
