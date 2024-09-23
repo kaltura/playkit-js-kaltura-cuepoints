@@ -1,4 +1,4 @@
-import {CuepointTypeMap, CuePoint, KalturaThumbCuePointSubType} from '../types';
+import {CuepointTypeMap, CuePoint, KalturaThumbCuePointSubType, KalturaCuePointType} from '../types';
 import {CuePointManager} from '../cuepoint-manager';
 import Player = KalturaPlayerTypes.Player;
 import Logger = KalturaPlayerTypes.Logger;
@@ -48,6 +48,9 @@ export class Provider {
   ) {
     if (!cuePoints.length) {
       return;
+    }
+    if (this._types.has(KalturaCuePointType.QUIZ)) {
+      usePendingQueManager = false
     }
     const playerCuePoints: CuePoint[] = cuePoints.map(cuePoint => {
       const {startTime, endTime, id, ...metadata} = cuePoint;
