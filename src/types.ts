@@ -13,8 +13,7 @@ export enum KalturaCuePointType {
   VIEW_CHANGE = 'viewchange',
   CHAPTER = 'chapter',
   HOTSPOT = 'hotspot',
-  CAPTION = 'caption',
-  SUMMARY = 'summary'
+  CAPTION = 'caption'
 }
 
 export enum CuePointTags {

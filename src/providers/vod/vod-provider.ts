@@ -44,7 +44,7 @@ export class VodProvider extends Provider {
       thumbSubTypesFilter = `${KalturaThumbCuePointSubType.SLIDE},`;
     }
 
-    if (this._types.has(KalturaCuePointType.CHAPTER) && !this._types.has(KalturaCuePointType.SUMMARY)) {
+    if (this._types.has(KalturaCuePointType.CHAPTER)) {
       thumbSubTypesFilter += `${KalturaThumbCuePointSubType.CHAPTER},`;
     }
 
