@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.18 (2025-03-06)
+
+
+### Bug Fixes
+
+* **FEC-14362:** remove Summary cuepoint type ([#77](https://github.com/kaltura/playkit-js-kaltura-cuepoints/issues/77)) ([0279fd4](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/0279fd4))
+
+
+
 ### 3.0.17 (2025-02-20)
 
 
