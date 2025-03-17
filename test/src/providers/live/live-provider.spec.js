@@ -50,7 +50,7 @@ describe('Check Live provider', () => {
     });
 
     it('should check event listener bindings', () => {
-      expect(liveProvider._eventManager._bindingMap._map.size).to.eq(3);
+      expect(liveProvider._eventManager._bindingMap._map.size).to.eq(5);
     });
 
     it('should handle timed metadata', () => {
