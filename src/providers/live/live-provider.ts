@@ -95,7 +95,7 @@ export class LiveProvider extends Provider {
         }
 
         const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
-        const cuepointOffset = this._getSimuliveCuepointOffset(id3Data.setId, id3Data.clipId);
+        const cuepointOffset = this._getSimuliveCuepointOffset(id3Data.clipId);
         if (cuepointOffset === null) {
           return;
         }
@@ -380,7 +380,7 @@ export class LiveProvider extends Provider {
     }
   }
 
-  private _getSimuliveCuepointOffset(setId: string, clipId: string): number | null {
+  private _getSimuliveCuepointOffset(clipId: string): number | null {
     const [_, __, clipStartTimestamp] = clipId.split('-');
     if (!clipStartTimestamp || this._simuliveStartTime === -1) return null;
     return (Number(clipStartTimestamp) - this._simuliveStartTime) / 1000;
