@@ -37,7 +37,11 @@ export class LiveProvider extends Provider {
   private _thumbUrlIsLoaderActive = false;
   private _thumbUrlAssetIdQueue: Array<string> = [];
 
-  private _simuliveClipTimestamps: Set<string>;
+  private _simuliveEntryIds: Set<string>;
+
+  private _simuliveStartTime = -1;
+
+  private _currentClipEntryId?: string;
 
   constructor(player: Player, eventManager: EventManager, logger: Logger, types: CuepointTypeMap) {
     super(player, eventManager, logger, types);
@@ -48,7 +52,16 @@ export class LiveProvider extends Provider {
     this._constructPushNotificationListener();
     this._pushNotification.registerToPushServer(this._player.sources.id, types, this._handleConnection, this._handleConnectionError);
     this._addBindings();
-    this._simuliveClipTimestamps = new Set();
+    this._simuliveEntryIds = new Set();
+
+    this._eventManager.listen(this._player, this._player.Event.PLAYING, () => {
+      if (this._simuliveStartTime === -1) {
+        this._simuliveStartTime = Date.now() - this._player.currentTime;
+      }
+    });
+    this._eventManager.listen(this._player, this._player.Event.RESET, () => {
+      this._simuliveStartTime = -1;
+    });
   }
 
   private _makeCurrentTimeLiveReadyPromise = () => {
@@ -82,34 +95,28 @@ export class LiveProvider extends Provider {
         }
 
         const [partType, originalEntryId, clipStartTimestamp] = id3Data.clipId.split('-');
-        const cuepointOffset = this._getSimuliveCuepointOffset(
-          id3Data.timestamp,
-          id3Data.setId,
-          id3Data.clipId,
-          id3TagCues[id3TagCues.length - 1].startTime
-        );
+        const cuepointOffset = this._getSimuliveCuepointOffset(id3Data.clipId);
         if (cuepointOffset === null) {
           return;
         }
 
+        const currentClipStartTime = this._player.currentTime + cuepointOffset;
+
         const textTracks = [...(this._player.getVideoElement().textTracks as any)];
         const cuepointsTrack = textTracks.find(t => t.label === 'CuePoints');
-        const activeCues = cuepointsTrack?.activeCues;
+        const activeCues = cuepointsTrack?.activeCues || [];
 
-        if (activeCues) {
+        if (originalEntryId !== this._currentClipEntryId) {
+          this._currentClipEntryId = originalEntryId;
+
           for (const cue of activeCues) {
-            // @ts-ignore
-            const nextClipStartTime = this._player.getStartTimeOfDvrWindow() + cuepointOffset;
-
-            if (cue.startTime < nextClipStartTime && cue.endTime > nextClipStartTime) {
-              cue.endTime = nextClipStartTime;
-            }
+            cue.endTime = currentClipStartTime;
           }
-        }
 
-        if (!this._simuliveClipTimestamps.has(clipStartTimestamp)) {
-          this._simuliveClipTimestamps.add(clipStartTimestamp);
-          this._addSimuliveCuepoints(originalEntryId, cuepointOffset);
+          if (!this._simuliveEntryIds.has(originalEntryId)) {
+            this._simuliveEntryIds.add(originalEntryId);
+            this._addSimuliveCuepoints(originalEntryId, currentClipStartTime);
+          }
         }
       } catch (e) {
         this._logger.debug('Failed retrieving id3 tag metadata');
@@ -373,21 +380,10 @@ export class LiveProvider extends Provider {
     }
   }
 
-  private _getSimuliveCuepointOffset(timestamp: string, setId: string, clipId: string, cueStartTime: number): number | null {
-    const setIdData = setId.split(',').reduce((result: any, currValue: string) => {
-      const [key, value] = currValue.split('=');
-      return {
-        ...result,
-        [key]: value
-      };
-    }, {});
-
-    const [partType, originalEntryId, clipStartTimestamp] = clipId.split('-');
-    if (!clipStartTimestamp || setIdData.offset === undefined) return null;
-
-    const firstClipStartTimestamp = +timestamp - +setIdData.offset - cueStartTime * 1000;
-    // @ts-ignore
-    return this._player.getStartTimeOfDvrWindow() + (clipStartTimestamp - firstClipStartTimestamp) / 1000;
+  private _getSimuliveCuepointOffset(clipId: string): number | null {
+    const [_, __, clipStartTimestamp] = clipId.split('-');
+    if (!clipStartTimestamp || this._simuliveStartTime === -1) return null;
+    return (Number(clipStartTimestamp) - this._simuliveStartTime) / 1000;
   }
 
   private _addSimuliveCuepoints(originalEntryId: string, cuepointOffset: number) {
