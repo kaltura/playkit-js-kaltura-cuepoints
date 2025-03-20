@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.19 (2025-03-20)
+
+
+### Bug Fixes
+
+* **SUP-44789:** The HOTSPOT in Simulive disappeared after one min of streaming ([b6f054b](https://github.com/kaltura/playkit-js-kaltura-cuepoints/commit/b6f054b))
+
+
+
 ### 3.0.18 (2025-03-06)
 
 
