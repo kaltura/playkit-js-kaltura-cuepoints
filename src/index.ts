@@ -1,4 +1,5 @@
 import {Cuepoints} from './cuepoints';
+import {registerPlugin} from '@playkit-js/kaltura-player-js';
 
 declare var __VERSION__: string;
 declare var __NAME__: string;
@@ -10,4 +11,4 @@ export {Cuepoints as Plugin};
 export {VERSION, NAME};
 
 const pluginName: string = 'kalturaCuepoints';
-KalturaPlayer.core.registerPlugin(pluginName, Cuepoints);
+registerPlugin(pluginName, Cuepoints as any);
