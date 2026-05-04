@@ -1,0 +1,199 @@
+{
+  "repositoryName": "playkit-js-kaltura-cuepoints",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-04",
+
+  "coreResponsibility": {
+    "summary": "A PlayKit JS plugin that provides cue point management and synchronization for the Kaltura Player, enabling time-based metadata display and interaction for both VOD and live streaming content.",
+    "type": "plugin"
+  },
+
+  "domainAndLogicOwnership": {
+    "featureOwnership": [
+      "Cue point type registration and lifecycle management",
+      "Slide/thumbnail cue point handling for video navigation",
+      "Chapter marker management for content segmentation",
+      "Quiz question cue point synchronization for interactive video",
+      "Hotspot cue point support for in-video interactions",
+      "View change cue point tracking for multi-camera/layout switching",
+      "Caption/transcript cue point management",
+      "Q&A cue point support (public, user-specific, and code-based)",
+      "Real-time push notification handling for live streams",
+      "Simulive (simulated live) cue point offset calculation",
+      "DVR and live edge cue point timing adjustments"
+    ],
+    "dataHandling": [
+      "CuePoint objects with id, startTime, endTime, and metadata",
+      "CuepointTypeMap for registered cue point type tracking",
+      "Active cue point state management via CuepointEngine",
+      "Cue point snapshot and delta calculation for time-based updates",
+      "ID3 tag timestamp parsing for live stream synchronization",
+      "Push notification message parsing and transformation",
+      "Thumb asset URL resolution and caching",
+      "Pending cue point queue management for seekbar prevention mode"
+    ]
+  },
+
+  "integrationPoints": {
+    "upstream": [
+      {
+        "name": "kaltura-player-js",
+        "type": "peerDependency",
+        "description": "Core Kaltura Player providing player instance, event system, and provider APIs"
+      },
+      {
+        "name": "Kaltura Backend API",
+        "type": "service",
+        "description": "Provides cue point data via cuepoint.list and thumbAsset.serveByEntryId endpoints"
+      },
+      {
+        "name": "Kaltura Push Notification Server",
+        "type": "service",
+        "description": "Socket.io-based real-time push notifications for live cue points"
+      }
+    ],
+    "downstream": [
+      {
+        "name": "playkit-js-navigation",
+        "type": "consumer",
+        "description": "Navigation plugin consuming slide and chapter cue points"
+      },
+      {
+        "name": "playkit-js-qna",
+        "type": "consumer",
+        "description": "Q&A plugin consuming QNA-type cue points"
+      },
+      {
+        "name": "playkit-js-quiz",
+        "type": "consumer",
+        "description": "Quiz plugin consuming quiz question cue points"
+      },
+      {
+        "name": "playkit-js-hotspots",
+        "type": "consumer",
+        "description": "Hotspots plugin consuming hotspot cue points"
+      },
+      {
+        "name": "playkit-js-transcript",
+        "type": "consumer",
+        "description": "Transcript plugin consuming caption cue points"
+      },
+      {
+        "name": "Player UI Layer",
+        "type": "consumer",
+        "description": "Receives TIMED_METADATA_ADDED and TIMED_METADATA_CHANGE events"
+      }
+    ],
+    "externalApis": [
+      {
+        "name": "Kaltura cuepoint.list API",
+        "description": "Fetches cue point data filtered by type and entry ID"
+      },
+      {
+        "name": "Kaltura thumbAsset.serveByEntryId API",
+        "description": "Retrieves thumbnail asset URLs for slide cue points"
+      },
+      {
+        "name": "Kaltura captionAsset.serveAsJson API",
+        "description": "Fetches caption/transcript data in JSON format"
+      },
+      {
+        "name": "Kaltura eventnotification_eventnotificationtemplate.register API",
+        "description": "Registers for push notification events for live streams"
+      },
+      {
+        "name": "Socket.io Client",
+        "description": "WebSocket connection to Kaltura push notification server"
+      }
+    ]
+  },
+
+  "technicalStack": {
+    "languages": ["TypeScript", "JavaScript"],
+    "frameworks": ["PlayKit JS Plugin Architecture"],
+    "buildTools": ["Webpack", "TypeScript Compiler"],
+    "testFrameworks": ["Karma", "Mocha", "Chai", "Sinon"],
+    "keyDependencies": [
+      "@playkit-js/kaltura-player-js",
+      "@playkit-js/common",
+      "socket.io-client"
+    ],
+    "entryPoints": [
+      {
+        "file": "src/index.ts",
+        "description": "Plugin registration entry point, exports Cuepoints plugin class"
+      },
+      {
+        "file": "src/cuepoints.ts",
+        "description": "Main plugin class extending BasePlugin, initializes CuepointService"
+      },
+      {
+        "file": "src/cuepoint-service.ts",
+        "description": "Core service managing cue point type registration and provider initialization"
+      },
+      {
+        "file": "src/providers/provider.ts",
+        "description": "Base provider class with shared cue point processing logic"
+      },
+      {
+        "file": "src/providers/vod/vod-provider.ts",
+        "description": "VOD-specific provider handling slides, chapters, quiz, hotspots, captions"
+      },
+      {
+        "file": "src/providers/live/live-provider.ts",
+        "description": "Live-specific provider with push notification and ID3 tag handling"
+      },
+      {
+        "file": "src/cuepoint-manager/cuepoint-engine.ts",
+        "description": "Time-based cue point activation engine with snapshot and delta calculation"
+      }
+    ]
+  },
+
+  "triageKeywords": [
+    "cue point",
+    "cuepoint",
+    "kalturaCuepoints",
+    "TIMED_METADATA",
+    "slide cue",
+    "chapter marker",
+    "quiz question cue",
+    "hotspot cue",
+    "view change",
+    "push notification",
+    "live cue point",
+    "ID3 tag",
+    "simulive",
+    "DVR cue",
+    "caption cue point",
+    "Q&A cue",
+    "QNA cue",
+    "thumb cue point",
+    "cue point timing",
+    "active cue points",
+    "registerTypes",
+    "CuepointService",
+    "CuePointManager",
+    "TIMED_METADATA_ADDED",
+    "TIMED_METADATA_CHANGE",
+    "socket.io connection",
+    "push server",
+    "cue point not appearing",
+    "cue point wrong timing",
+    "cue point out of sync"
+  ],
+
+  "errorPatterns": [
+    "Cue point registration should occur on loadMedia",
+    "is not a valid cue point type for registration",
+    "Cue points provider was not initialized",
+    "Provider cue points doRequest doesn't have data",
+    "ThumbUrlLoader doRequest doesn't have data",
+    "Got an error during connection to push server",
+    "Error fetching registration info from service",
+    "Failed retrieving id3 tag metadata",
+    "Unnable parse slide-view change cue-point",
+    "Unnable parse code qna cue-point",
+    "can't get baseThumbAssetUrl"
+  ]
+}
